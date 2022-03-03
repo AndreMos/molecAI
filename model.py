@@ -5,6 +5,7 @@ from torch_geometric.nn import MessagePassing
 import torch.nn.functional as F
 from torch_scatter import scatter
 import pytorch_lightning  as pl
+import numpy as np
 
 class CosineCutoff(nn.Module):
     r"""Class of Behler cosine cutoff.
