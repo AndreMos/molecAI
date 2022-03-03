@@ -1,11 +1,13 @@
 #! /usr/bin/env python3
 #SBATCH -p gpu
-
+#SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
 #SBATCH --time 00:02:00
 #SBATCH -J testjob
 #SBATCH --mem 4GB
-
+import sys
+import os
+sys.path.append(os.getcwd())
 # -*- coding: utf-8 -*-
 """Untitled9.ipynb
 
@@ -23,9 +25,6 @@ Original file is located at
 # from joblib import Parallel, delayed
 import pytorch_lightning  as pl# import LightningModule, Trainer
 import torch_geometric
-import os
-
-print(os.listdir())
 from model import Schnet
 
 
