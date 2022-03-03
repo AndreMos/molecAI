@@ -1,3 +1,11 @@
+#! /usr/bin/env python3
+#SBATCH -p gpu
+
+#SBATCH --gres=gpu:1
+#SBATCH --time 00:02:00
+#SBATCH -J testjob
+#SBATCH --mem 4GB
+
 # -*- coding: utf-8 -*-
 """Untitled9.ipynb
 
