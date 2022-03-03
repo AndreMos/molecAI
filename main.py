@@ -2,7 +2,7 @@
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
-#SBATCH --time 01:00:00
+#SBATCH --time 10:30:00
 #SBATCH -J testjob
 #SBATCH --mem 4GB
 import sys
@@ -41,10 +41,10 @@ dataset = QM9('/data/scratch/andrem97/', pre_transform=torch_geometric.transform
 class DataModule(pl.LightningDataModule):
 
   def train_dataloader(self):
-    return torch_geometric.loader.DataLoader(dataset[:16], shuffle=True, batch_size = 16, **{'drop_last' : True})
+    return torch_geometric.loader.DataLoader(dataset[:16], shuffle=True, batch_size = 32, **{'drop_last' : True})
 
-  # def val_dataloader(self):
-  #   return torch_geometric.loader.DataLoader(dataset[110462:111462], shuffle=True, batch_size = 32, **{'drop_last' : True})
+  def val_dataloader(self):
+    return torch_geometric.loader.DataLoader(dataset[110462:111462], shuffle=True, batch_size = 32, **{'drop_last' : True})
 
 data_module = DataModule()
 

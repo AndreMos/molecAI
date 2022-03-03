@@ -6,6 +6,35 @@ import torch.nn.functional as F
 from torch_scatter import scatter
 import pytorch_lightning  as pl
 
+class CosineCutoff(nn.Module):
+    r"""Class of Behler cosine cutoff.
+    .. math::
+       f(r) = \begin{cases}
+        0.5 \times \left[1 + \cos\left(\frac{\pi r}{r_\text{cutoff}}\right)\right]
+          & r < r_\text{cutoff} \\
+        0 & r \geqslant r_\text{cutoff} \\
+        \end{cases}
+    Args:
+        cutoff (float, optional): cutoff radius.
+    """
+
+    def __init__(self, cutoff=5.0):
+        super(CosineCutoff, self).__init__()
+        self.register_buffer("cutoff", torch.FloatTensor([cutoff]))
+
+    def forward(self, distances):
+        """Compute cutoff.
+        Args:
+            distances (torch.Tensor): values of interatomic distances.
+        Returns:
+            torch.Tensor: values of cutoff function.
+        """
+        # Compute values of cutoff function
+        cutoffs = 0.5 * (torch.cos(distances * np.pi / self.cutoff) + 1.0)
+        # Remove contributions beyond the cutoff radius
+        cutoffs *= (distances < self.cutoff).float()
+        return cutoffs
+
 class ContConv(MessagePassing):
     r'''
     Filtering network
@@ -16,7 +45,7 @@ class ContConv(MessagePassing):
         self.rbf = RbfExpand()
         self.dense = [nn.Linear(300, 64), \
                       nn.Linear(64, 64)]
-
+        self.cutoff = CosineCutoff()
     def forward(self, x: torch.Tensor,
                 r: torch.Tensor,
                 edge_index: torch.Tensor) -> torch.Tensor:
@@ -31,12 +60,14 @@ class ContConv(MessagePassing):
 
                                """
         # print('R do', r.shape)
+        C = self.cutoff(r)
         r = self.rbf(r)
         # print('R posle', r.shape)
 
         for dense_instance in self.dense:
             r = dense_instance(r)
             r = F.tanh(r)#torch.log(0.5 * torch.exp(r) + 0.5)
+        r = r * C.unsqueeze(-1)
         prop = self.propagate(edge_index, x=x, W=r, size=None)
         # print(r.shape, x.shape, prop.shape)
         return prop  # x * r.view(-1, 1)
@@ -172,5 +203,5 @@ class Schnet(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
-        sched = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        sched = StepLR(optimizer, 100000, 0.96)#torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
         return [optimizer], [sched]
