@@ -24,7 +24,7 @@ Original file is located at
 import pytorch_lightning  as pl# import LightningModule, Trainer
 import torch_geometric
 
-from model import Schnet
+from .model import Schnet
 
 
 
