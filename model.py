@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch
 import torch_geometric
 from torch_geometric.nn import MessagePassing
+import torch.nn.functional as F
+from torch_scatter import scatter
 
 class ContConv(MessagePassing):
     r'''
@@ -156,16 +158,14 @@ class Schnet(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         x, y = train_batch.edge_attr, train_batch.y[:, 7]
-        charges = torch.tensor([a[x.item()] for x in train_batch.z], dtype=torch.long)
-        logits = self.forward(x, charges, train_batch.batch)
+        logits = self.forward(x)
         loss = self.mse(logits, y)
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
-        x, y = val_batch.edge_attr, val_batch.y[:, 8]
-        charges = torch.tensor([a[x.item()] for x in val_batch.z], dtype=torch.long)
-        logits = self.forward(x, charges, val_batch.batch)
+        x, y = val_batch.edge_attr, val_batch.y[:, 7]
+        logits = self.forward(x)
         loss = self.mse(logits, y)
         self.log('val_loss', loss)
 

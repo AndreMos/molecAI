@@ -15,16 +15,15 @@ Original file is located at
     https://colab.research.google.com/drive/1de_AxhXMN_HcBwbXSUkwUu-W0eNLJGg9
 """
 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import os
-from pathlib import Path
-from joblib import Parallel, delayed
+# import numpy as np
+# import pandas as pd
+# import matplotlib.pyplot as plt
+# import os
+# from pathlib import Path
+# from joblib import Parallel, delayed
 import pytorch_lightning  as pl# import LightningModule, Trainer
 import torch_geometric
-import torch.nn.functional as F
-from torch_scatter import scatter
+
 from model import Schnet
 
 
