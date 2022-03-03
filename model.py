@@ -36,7 +36,7 @@ class ContConv(MessagePassing):
 
         for dense_instance in self.dense:
             r = dense_instance(r)
-            r = torch.log(0.5 * torch.exp(r) + 0.5)
+            r = F.tanh(r)#torch.log(0.5 * torch.exp(r) + 0.5)
         prop = self.propagate(edge_index, x=x, W=r, size=None)
         # print(r.shape, x.shape, prop.shape)
         return prop  # x * r.view(-1, 1)
@@ -91,7 +91,7 @@ class InterBlock(nn.Module):
         # print(type(x), type(r))
         x = self.conv(x, r, edge_index)
         x = self.atom_wise_list[1](x)
-        x = torch.log(0.5 * torch.exp(x) + 0.5)
+        x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)
         x = self.atom_wise_list[2](x)
 
         return x
@@ -140,7 +140,7 @@ class Schnet(pl.LightningModule):
             x = interaction_block(x, r, sample.edge_index)
         # print(x.shape)
         x = self.atom_wise32(x)
-        x = torch.log(0.5 * torch.exp(x) + 0.5)
+        x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)
         # print(x.shape)
         energy = self.atom_wise1(x)
         # force = -torch.autograd.grad(
