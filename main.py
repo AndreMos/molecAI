@@ -23,8 +23,10 @@ Original file is located at
 # from joblib import Parallel, delayed
 import pytorch_lightning  as pl# import LightningModule, Trainer
 import torch_geometric
+import os
 
-from .model import Schnet
+print(os.listdir())
+from model import Schnet
 
 
 
