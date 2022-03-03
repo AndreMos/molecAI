@@ -43,8 +43,8 @@ class DataModule(pl.LightningDataModule):
   def train_dataloader(self):
     return torch_geometric.loader.DataLoader(dataset[:16], shuffle=True, batch_size = 16, **{'drop_last' : True})
 
-  def val_dataloader(self):
-    return torch_geometric.loader.DataLoader(dataset[110462:111462], shuffle=True, batch_size = 32, **{'drop_last' : True})
+  # def val_dataloader(self):
+  #   return torch_geometric.loader.DataLoader(dataset[110462:111462], shuffle=True, batch_size = 32, **{'drop_last' : True})
 
 data_module = DataModule()
 
