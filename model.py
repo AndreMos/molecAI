@@ -158,14 +158,14 @@ class Schnet(pl.LightningModule):
         return F.mse_loss(y_pred, y_true)
 
     def training_step(self, train_batch, batch_idx):
-        x, y = train_batch.edge_attr, train_batch.y[:, 7]
+        x, y = train_batch, train_batch.y[:, 7]
         logits = self.forward(x)
         loss = self.mse(logits, y)
         self.log('train_loss', loss)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
-        x, y = val_batch.edge_attr, val_batch.y[:, 7]
+        x, y = val_batch, val_batch.y[:, 7]
         logits = self.forward(x)
         loss = self.mse(logits, y)
         self.log('val_loss', loss)
