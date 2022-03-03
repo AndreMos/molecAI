@@ -4,6 +4,7 @@ import torch_geometric
 from torch_geometric.nn import MessagePassing
 import torch.nn.functional as F
 from torch_scatter import scatter
+import pytorch_lightning  as pl
 
 class ContConv(MessagePassing):
     r'''
