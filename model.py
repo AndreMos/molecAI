@@ -204,5 +204,5 @@ class Schnet(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
-        sched = StepLR(optimizer, 100000, 0.96)#torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        sched = torch.optim.StepLR(optimizer, 100000, 0.96)#torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
         return [optimizer], [sched]
