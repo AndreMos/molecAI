@@ -27,15 +27,19 @@ import pytorch_lightning  as pl# import LightningModule, Trainer
 import torch_geometric
 from model import Schnet
 
+from model_bert import DistilBertAppl
 
 
+from dataset import CustomDataset
 
 # pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html
 #
 
 
-from torch_geometric.datasets import QM9
-dataset = QM9('/data/scratch/andrem97/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
+
+
+dataset = CustomDataset('/data/scratch/andrem97/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
+
 
 
 class DataModule(pl.LightningDataModule):
@@ -49,7 +53,7 @@ class DataModule(pl.LightningDataModule):
 data_module = DataModule()
 
 # train
-model = Schnet()
+model = DistilBertAppl()
 trainer = pl.Trainer()
 
 # Commented out IPython magic to ensure Python compatibility.
