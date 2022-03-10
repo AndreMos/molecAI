@@ -59,7 +59,7 @@ trainer = pl.Trainer()
 # Commented out IPython magic to ensure Python compatibility.
 # Start tensorboard.
 # %load_ext tensorboard
-# %tensorboard --logdir lightning_logs/
+# %tensorboard --logdir lightning_logs
 
 trainer.fit(model, data_module)
 
