@@ -31,7 +31,7 @@ from model_bert import DistilBertAppl
 from model_mult_mod import  MultiMod
 
 
-from dataset_mm import CustomDataset
+from dataset import CustomDataset
 
 # pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html
 #
@@ -54,7 +54,7 @@ class DataModule(pl.LightningDataModule):
 data_module = DataModule()
 
 # train
-model = MultiMod()
+model = DistilBertAppl()
 trainer = pl.Trainer()
 
 # Commented out IPython magic to ensure Python compatibility.

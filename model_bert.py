@@ -101,7 +101,7 @@ class RbfExpand(nn.Module):
 
 class DistilBertAppl(pl.LightningModule):
 
-    def __init__(self, batch_size=32, hidden_s=64):
+    def __init__(self, batch_size=32, hidden_s=128):
         super(DistilBertAppl, self).__init__()
         self.hidden_s = hidden_s
         self.config = DistilBertConfig(vocab_size=6, max_position_embeddings=29, dim=self.hidden_s, num_labels=1, n_heads=4,
