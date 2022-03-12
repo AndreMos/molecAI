@@ -46,8 +46,8 @@ class ContConv(MessagePassing):
     def __init__(self):
         super(ContConv, self).__init__()
         self.rbf = RbfExpand()
-        self.dense = [nn.Linear(300, 64), \
-                      nn.Linear(64, 64)]
+        self.dense = [nn.Linear(300, 128), \
+                      nn.Linear(128, 128)]
         self.cutoff = CosineCutoff()
     def forward(self, x: torch.Tensor,
                 r: torch.Tensor,
