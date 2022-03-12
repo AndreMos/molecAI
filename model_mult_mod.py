@@ -108,7 +108,7 @@ class MultiMod(pl.LightningModule):
         self.rbf = RbfExpand()
 
         self.config_MM = MMBTConfig(self.config, num_labels=1, modal_hidden_size=300)
-        self.mm_transformer = MMBTForClassification(self.config_MM, encoder=self.rbf, transformer=self.bert)
+        self.mm_transformer = Helper(self.config_MM, encoder=self.rbf, transformer=self.bert)
 
         self.batch_size = batch_size
 
