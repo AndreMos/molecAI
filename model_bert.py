@@ -49,6 +49,7 @@ class ContConv(MessagePassing):
         self.dense = [nn.Linear(300, 128), \
                       nn.Linear(128, 128)]
         self.cutoff = CosineCutoff()
+
     def forward(self, x: torch.Tensor,
                 r: torch.Tensor,
                 edge_index: torch.Tensor) -> torch.Tensor:
@@ -71,6 +72,7 @@ class ContConv(MessagePassing):
             r = dense_instance(r)
             r = F.tanh(r)#torch.log(0.5 * torch.exp(r) + 0.5)
         r = r * C.unsqueeze(-1)
+        print(r.shape, x.shape)
         prop = self.propagate(edge_index, x=x, W=r, size=None)
         # print(r.shape, x.shape, prop.shape)
         return prop  # x * r.view(-1, 1)
