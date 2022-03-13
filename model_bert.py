@@ -72,7 +72,7 @@ class ContConv(MessagePassing):
             r = dense_instance(r)
             r = F.tanh(r)#torch.log(0.5 * torch.exp(r) + 0.5)
         r = r * C.unsqueeze(-1)
-        print(r.shape, x.shape)
+        print(r.shape, x.shape, edge_index.shape)
         prop = self.propagate(edge_index, x=x, W=r, size=None)
         # print(r.shape, x.shape, prop.shape)
         return prop  # x * r.view(-1, 1)
@@ -116,6 +116,7 @@ class DistilBertAppl(pl.LightningModule):
     def forward(self, sample):
 
         x = self.emb(sample.modif_z)
+        print(sample)
         x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         res = self.bert(inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s), \
           attention_mask=sample.attent_mask.reshape(self.batch_size, -1), \
