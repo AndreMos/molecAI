@@ -109,7 +109,7 @@ class DistilBertAppl(pl.LightningModule):
                               **{'problem_type': 'regression'})
         self.bert = DistilBertForSequenceClassification(self.config)
         self.emb = nn.Embedding(num_embeddings=6, embedding_dim=self.hidden_s, padding_idx=0)
-        self.conv = ContConv().to('cuda:0')
+        self.conv = ContConv()
         self.batch_size = batch_size
 
     def forward(self, sample):

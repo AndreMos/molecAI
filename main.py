@@ -55,7 +55,7 @@ data_module = DataModule()
 
 # train
 model = DistilBertAppl()
-trainer = pl.Trainer(gpus=1)
+trainer = pl.Trainer()
 
 # Commented out IPython magic to ensure Python compatibility.
 # Start tensorboard
