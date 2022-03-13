@@ -55,10 +55,10 @@ data_module = DataModule()
 
 # train
 model = DistilBertAppl()
-trainer = pl.Trainer()
+trainer = pl.Trainer(gpus=1)
 
 # Commented out IPython magic to ensure Python compatibility.
-# Start tensorboard.
+# Start tensorboard
 # %load_ext tensorboard
 # %tensorboard --logdir lightning_logs
 
