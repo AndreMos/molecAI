@@ -54,7 +54,7 @@ class DataModule(pl.LightningDataModule):
 data_module = DataModule()
 
 # train
-model = DistilBertAppl().to('cuda:0')
+model = DistilBertAppl()
 trainer = pl.Trainer(gpus=1)
 
 # Commented out IPython magic to ensure Python compatibility.

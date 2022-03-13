@@ -9,7 +9,7 @@ import numpy as np
 from transformers import DistilBertConfig, DistilBertForSequenceClassification
 
 
-class CosineCutoff(nn.Module):
+class CosineCutoff(pl.LightningModule):
     r"""Class of Behler cosine cutoff.
     .. math::
        f(r) = \begin{cases}
@@ -38,7 +38,7 @@ class CosineCutoff(nn.Module):
         cutoffs *= (distances < self.cutoff).float()
         return cutoffs
 
-class ContConv(MessagePassing):
+class ContConv(MessagePassing, pl.LightningModule):
     r'''
     Filtering network
     '''
@@ -80,7 +80,7 @@ class ContConv(MessagePassing):
         return x_j * W
 
 
-class RbfExpand(nn.Module):
+class RbfExpand(pl.LightningModule):
     r'''
     Class for distance featurisation
 
@@ -93,7 +93,7 @@ class RbfExpand(nn.Module):
         self.upper_bound = upper_bound
         self.gamma = gamma
         self.step = step
-        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step).cuda()
+        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step)
 
     def forward(self, distances):
         distances = distances.unsqueeze(-1)
@@ -114,7 +114,6 @@ class DistilBertAppl(pl.LightningModule):
 
     def forward(self, sample):
 
-        sample = sample.to('cuda:0')
         x = self.emb(sample.modif_z)
         x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         res = self.bert(inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s), \
