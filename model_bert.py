@@ -114,7 +114,7 @@ class DistilBertAppl(pl.LightningModule):
 
     def forward(self, sample):
 
-        sample.to('cuda:0')
+        sample = sample.to('cuda:0')
         x = self.emb(sample.modif_z)
         x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         res = self.bert(inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s), \
