@@ -150,7 +150,7 @@ class DistilBertAppl(pl.LightningModule):
         x = self.emb(sample.modif_z)
         #x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         for interaction_block in self.interaction_list:
-            x += interaction_block(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
+            x = interaction_block(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         res = self.bert(inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s), \
           attention_mask=sample.attent_mask.reshape(self.batch_size, -1), \
           labels=sample.y[:, 7])
