@@ -169,7 +169,7 @@ class Schnet(pl.LightningModule):
         r = sample.edge_attr.reshape(-1).float()
         # print(r.shape, x.shape)
         for interaction_block in self.interaction_list:
-            x = interaction_block(x, r, sample.edge_index)
+            x += interaction_block(x, r, sample.edge_index)
         # print(x.shape)
         x = self.atom_wise32(x)
         x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)

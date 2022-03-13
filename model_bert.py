@@ -46,8 +46,8 @@ class ContConv(MessagePassing, pl.LightningModule):
     def __init__(self):
         super(ContConv, self).__init__()
         self.rbf = RbfExpand()
-        self.dense = [nn.Linear(300, 128), \
-                      nn.Linear(128, 128)]
+        self.dense = nn.Sequential(nn.Linear(300, 128), \
+                      nn.Linear(128, 128))
         self.cutoff = CosineCutoff()
 
     def forward(self, x: torch.Tensor,
@@ -93,11 +93,43 @@ class RbfExpand(pl.LightningModule):
         self.upper_bound = upper_bound
         self.gamma = gamma
         self.step = step
-        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step)
+        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step).to('cuda:0')
 
     def forward(self, distances):
         distances = distances.unsqueeze(-1)
         return torch.exp(-self.gamma * torch.pow((distances - self.spaced_values), 2))
+
+class InterBlock(nn.Module):
+
+    def __init__(self):
+        super(InterBlock, self).__init__()
+        self.conv = ContConv()
+
+        self.atom_wise_list = nn.Sequential(nn.Linear(128, 128),nn.Linear(128, 128),nn.Linear(128, 128))  # [nn.Linear(64, 64)]
+
+    def forward(self, x: torch.Tensor,
+                r: torch.Tensor,
+                edge_index: torch.Tensor) -> torch.Tensor:
+        r"""Forward pass through the Interaction block.
+                       Parameters
+                       ----------
+                       x:
+                           Embedded properties of charges of the system (n-atoms, n_hidden)
+                       r:
+                           interatomic distances (n_edges, )
+
+
+                       """
+        x = self.atom_wise_list[0](x)
+        # print('x shape ', x.shape)
+        # print(type(x), type(r))
+        x = self.conv(x, r, edge_index)
+        x = self.atom_wise_list[1](x)
+        x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)
+        x = self.atom_wise_list[2](x)
+
+        return x
+
 
 
 class DistilBertAppl(pl.LightningModule):
@@ -109,13 +141,16 @@ class DistilBertAppl(pl.LightningModule):
                               **{'problem_type': 'regression'})
         self.bert = DistilBertForSequenceClassification(self.config)
         self.emb = nn.Embedding(num_embeddings=6, embedding_dim=self.hidden_s, padding_idx=0)
-        self.conv = ContConv()
+        #self.conv = ContConv()
+        self.interaction_list = nn.Sequential(InterBlock(),InterBlock(),InterBlock())
         self.batch_size = batch_size
 
     def forward(self, sample):
 
         x = self.emb(sample.modif_z)
-        x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
+        #x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
+        for interaction_block in self.interaction_list:
+            x += interaction_block(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         res = self.bert(inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s), \
           attention_mask=sample.attent_mask.reshape(self.batch_size, -1), \
           labels=sample.y[:, 7])
