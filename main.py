@@ -38,8 +38,8 @@ from dataset import CustomDataset
 
 
 
-
-dataset = CustomDataset('/data/scratch/andrem97/')#, pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
+#DO NOT FORGET TO CUT PRETRANSFORM
+dataset = CustomDataset('/data/scratch/andrem97/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
 
 
 
