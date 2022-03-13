@@ -93,7 +93,7 @@ class RbfExpand(nn.Module):
         self.upper_bound = upper_bound
         self.gamma = gamma
         self.step = step
-        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step)
+        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step).cuda()
 
     def forward(self, distances):
         distances = distances.unsqueeze(-1)
