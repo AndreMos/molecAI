@@ -25,13 +25,28 @@ Original file is located at
 # from joblib import Parallel, delayed
 import pytorch_lightning  as pl# import LightningModule, Trainer
 import torch_geometric
+
+from transformers import (
+
+     PerceiverForSequenceClassification, PerceiverConfig, PerceiverTokenizer, PerceiverFeatureExtractor, PerceiverModel, PerceiverForMultimodalAutoencoding, PerceiverForImageClassificationLearned
+)
+
+from transformers.models.perceiver.modeling_perceiver import (
+     PerceiverTextPreprocessor,
+     PerceiverImagePreprocessor,
+     PerceiverClassificationDecoder,
+     AbstractPreprocessor
+ )
+
+
 from model import Schnet
 
-from model_bert import DistilBertAppl
-from model_mult_mod import  MultiMod
+#from model_bert import DistilBertAppl
+#from model_mult_mod import  MultiMod
+from model_perceiver import MyPerceiver, MolecPreprocessor
 
 
-from dataset import CustomDataset
+from dataset_perceiver import CustomDataset
 
 # pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html
 #
@@ -39,7 +54,7 @@ from dataset import CustomDataset
 
 
 #DO NOT FORGET TO CUT PRETRANSFORM
-dataset = CustomDataset('/data/scratch/andrem97/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
+dataset = CustomDataset('/data/scratch/andrem97/')#, pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
 
 
 
@@ -54,7 +69,16 @@ class DataModule(pl.LightningDataModule):
 data_module = DataModule()
 
 # train
-model = DistilBertAppl()
+
+config = PerceiverConfig(num_latents=64, d_latents=128, num_labels=1, num_cross_attention_heads=4)
+decoder = PerceiverClassificationDecoder(
+    config,
+    num_channels=config.d_latents,
+    trainable_position_encoding_kwargs=dict(num_channels=config.d_latents, index_dims=1),
+    use_query_residual=True,
+)
+
+model = MyPerceiver(config, input_preprocessor=MolecPreprocessor(), decoder=decoder)
 trainer = pl.Trainer(gpus=1)
 
 # Commented out IPython magic to ensure Python compatibility.
