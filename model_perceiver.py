@@ -105,7 +105,7 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
 
 
     def training_step(self, train_batch, batch_idx):
-        logits = self.forward(train_batch).logits
+        logits = self.forward(train_batch).logits.reshape(-1)
         loss = self.mse(logits, train_batch.y[:, 7])
 
         self.log('train_loss', loss)
@@ -113,7 +113,7 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
 
 
     def validation_step(self, val_batch, batch_idx):
-        logits = self.forward(val_batch).logits
+        logits = self.forward(val_batch).logits.reshape(-1)
         loss = self.mse(logits, val_batch.y[:, 7])
         self.log('val_loss', loss)
 
