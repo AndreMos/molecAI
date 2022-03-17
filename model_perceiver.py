@@ -90,7 +90,7 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
         res = super().forward(
             # self,
             inputs,
-            attention_mask=inputs.attent_dist.reshape(4, -1),
+            attention_mask=inputs.attent_dist.reshape(len(inputs.idx), -1),
             subsampled_output_points=None,
             head_mask=None,
             output_attentions=None,
