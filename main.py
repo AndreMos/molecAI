@@ -39,7 +39,7 @@ from transformers.models.perceiver.modeling_perceiver import (
     PerceiverClassificationDecoder
 )
 
-#from model_bert import DistilBertAppl
+from models.model_bert import DistilBertAppl
 #from model_mult_mod import  MultiMod
 #from model_perceiver import MyPerceiver, MolecPreprocessor
 
