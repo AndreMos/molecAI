@@ -28,18 +28,12 @@ import torch_geometric
 
 from transformers import (
 
-     PerceiverForSequenceClassification, PerceiverConfig, PerceiverTokenizer, PerceiverFeatureExtractor, PerceiverModel, PerceiverForMultimodalAutoencoding, PerceiverForImageClassificationLearned
+    PerceiverConfig
 )
 
 from transformers.models.perceiver.modeling_perceiver import (
-     PerceiverTextPreprocessor,
-     PerceiverImagePreprocessor,
-     PerceiverClassificationDecoder,
-     AbstractPreprocessor
- )
-
-
-from model import Schnet
+    PerceiverClassificationDecoder
+)
 
 #from model_bert import DistilBertAppl
 #from model_mult_mod import  MultiMod
