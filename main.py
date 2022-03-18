@@ -84,6 +84,7 @@ import pytorch_lightning  as pl
 class CustomSchNet(pl.LightningModule):
 
     def __init__(self):
+        super(CustomSchNet, self).__init__()
         self.model = SchNet()
 
     def forward(self, sample):
