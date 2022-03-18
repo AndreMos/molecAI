@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
+#SBATCH -o vanillaSchNet
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
-#SBATCH --time 10:30:00
+#SBATCH --time 16:00:00
 #SBATCH -J testjob
 #SBATCH --mem 4GB
 import sys
@@ -37,18 +38,20 @@ from transformers.models.perceiver.modeling_perceiver import (
 
 #from model_bert import DistilBertAppl
 #from model_mult_mod import  MultiMod
-from model_perceiver import MyPerceiver, MolecPreprocessor
+#from model_perceiver import MyPerceiver, MolecPreprocessor
 
 
-from dataset_perceiver import CustomDataset
+#from dataset_perceiver import CustomDataset
 
 # pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html
 #
 
+from torch_geometric.datasets import QM9
+dataset = QM9('/content/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
 
 
 #DO NOT FORGET TO CUT PRETRANSFORM
-dataset = CustomDataset('/data/scratch/andrem97/')#, pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
+#dataset = CustomDataset('/data/scratch/andrem97/')#, pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
 
 
 
@@ -64,15 +67,52 @@ data_module = DataModule()
 
 # train
 
-config = PerceiverConfig(num_latents=64, d_latents=128, num_labels=1, num_cross_attention_heads=4)
-decoder = PerceiverClassificationDecoder(
-    config,
-    num_channels=config.d_latents,
-    trainable_position_encoding_kwargs=dict(num_channels=config.d_latents, index_dims=1),
-    use_query_residual=True,
-)
+# config = PerceiverConfig(num_latents=64, d_latents=128, num_labels=1, num_cross_attention_heads=4)
+# decoder = PerceiverClassificationDecoder(
+#     config,
+#     num_channels=config.d_latents,
+#     trainable_position_encoding_kwargs=dict(num_channels=config.d_latents, index_dims=1),
+#     use_query_residual=True,
+# )
+#
+# model = MyPerceiver(config, input_preprocessor=MolecPreprocessor(), decoder=decoder)
 
-model = MyPerceiver(config, input_preprocessor=MolecPreprocessor(), decoder=decoder)
+from torch_geometric.nn import SchNet
+import pytorch_lightning  as pl
+
+
+class CustomSchNet(pl.LightningModule):
+
+    def __init__(self):
+        self.model = SchNet()
+
+    def forward(self, sample):
+        return self.model(sample.z, sample.pos, sample.batch)
+
+    def mse(self, y_pred, y_true):
+        return F.mse_loss(y_pred, y_true)
+
+    def training_step(self, train_batch, batch_idx):
+        logits = self.forward(train_batch).reshape(-1)
+        loss = self.mse(logits, train_batch.y[:, 7])
+
+        self.log('train_loss', loss, batch_size=32)
+        return loss
+
+    def validation_step(self, val_batch, batch_idx):
+        logits = self.forward(val_batch).reshape(-1)
+        loss = self.mse(logits, val_batch.y[:, 7])
+        self.log('val_loss', loss, batch_size=32)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
+        sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
+                                                0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        return [optimizer] , [sched]
+
+
+model = CustomSchNet()
+
 trainer = pl.Trainer(gpus=1)
 
 # Commented out IPython magic to ensure Python compatibility.
