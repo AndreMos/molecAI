@@ -47,7 +47,7 @@ from transformers.models.perceiver.modeling_perceiver import (
 #
 
 from torch_geometric.datasets import QM9
-dataset = QM9('/content/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
+dataset = QM9('/data/scratch/andrem97/', pre_transform=torch_geometric.transforms.Distance(norm=False,cat=False))
 
 
 #DO NOT FORGET TO CUT PRETRANSFORM
