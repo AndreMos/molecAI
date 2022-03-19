@@ -4,7 +4,7 @@ import torch_geometric
 from torch_geometric.nn import MessagePassing
 import torch.nn.functional as F
 from torch_scatter import scatter
-import pytorch_lightning  as pl
+import pytorch_lightning as pl
 import numpy as np
 from transformers import DistilBertConfig, DistilBertForSequenceClassification
 
@@ -38,31 +38,31 @@ class CosineCutoff(pl.LightningModule):
         cutoffs *= (distances < self.cutoff).float()
         return cutoffs
 
+
 class ContConv(MessagePassing, pl.LightningModule):
-    r'''
+    r"""
     Filtering network
-    '''
+    """
 
     def __init__(self):
         super(ContConv, self).__init__()
         self.rbf = RbfExpand()
-        self.dense = nn.Sequential(nn.Linear(300, 128), \
-                      nn.Linear(128, 128))
+        self.dense = nn.Sequential(nn.Linear(300, 128), nn.Linear(128, 128))
         self.cutoff = CosineCutoff()
 
-    def forward(self, x: torch.Tensor,
-                r: torch.Tensor,
-                edge_index: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, r: torch.Tensor, edge_index: torch.Tensor
+    ) -> torch.Tensor:
         r"""Forward pass through the Conv block.
-                               Parameters
-                               ----------
-                               x:
-                                   Embedded properties of charges of the system (n-atoms, n_hidden)
-                               r:
-                                   interatomic distances (n_edges, )
+        Parameters
+        ----------
+        x:
+            Embedded properties of charges of the system (n-atoms, n_hidden)
+        r:
+            interatomic distances (n_edges, )
 
 
-                               """
+        """
         # print('R do', r.shape)
         C = self.cutoff(r)
         r = self.rbf(r)
@@ -70,7 +70,7 @@ class ContConv(MessagePassing, pl.LightningModule):
 
         for dense_instance in self.dense:
             r = dense_instance(r)
-            r = F.tanh(r)#torch.log(0.5 * torch.exp(r) + 0.5)
+            r = F.tanh(r)  # torch.log(0.5 * torch.exp(r) + 0.5)
         r = r * C.unsqueeze(-1)
         prop = self.propagate(edge_index, x=x, W=r, size=None)
         # print(r.shape, x.shape, prop.shape)
@@ -81,10 +81,10 @@ class ContConv(MessagePassing, pl.LightningModule):
 
 
 class RbfExpand(pl.LightningModule):
-    r'''
+    r"""
     Class for distance featurisation
 
-    '''
+    """
 
     def __init__(self, step=0.1, lower_bound=0, upper_bound=30, gamma=10):
         super(RbfExpand, self).__init__()
@@ -93,82 +93,94 @@ class RbfExpand(pl.LightningModule):
         self.upper_bound = upper_bound
         self.gamma = gamma
         self.step = step
-        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step).to('cuda:0')
+        self.spaced_values = torch.arange(
+            self.lower_bound, self.upper_bound, self.step
+        ).to("cuda:0")
 
     def forward(self, distances):
         distances = distances.unsqueeze(-1)
         return torch.exp(-self.gamma * torch.pow((distances - self.spaced_values), 2))
 
-class InterBlock(nn.Module):
 
+class InterBlock(nn.Module):
     def __init__(self):
         super(InterBlock, self).__init__()
         self.conv = ContConv()
 
-        self.atom_wise_list = nn.Sequential(nn.Linear(128, 128),nn.Linear(128, 128),nn.Linear(128, 128))  # [nn.Linear(64, 64)]
+        self.atom_wise_list = nn.Sequential(
+            nn.Linear(128, 128), nn.Linear(128, 128), nn.Linear(128, 128)
+        )  # [nn.Linear(64, 64)]
 
-    def forward(self, x: torch.Tensor,
-                r: torch.Tensor,
-                edge_index: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, r: torch.Tensor, edge_index: torch.Tensor
+    ) -> torch.Tensor:
         r"""Forward pass through the Interaction block.
-                       Parameters
-                       ----------
-                       x:
-                           Embedded properties of charges of the system (n-atoms, n_hidden)
-                       r:
-                           interatomic distances (n_edges, )
+        Parameters
+        ----------
+        x:
+            Embedded properties of charges of the system (n-atoms, n_hidden)
+        r:
+            interatomic distances (n_edges, )
 
 
-                       """
+        """
         x = self.atom_wise_list[0](x)
         # print('x shape ', x.shape)
         # print(type(x), type(r))
         x = self.conv(x, r, edge_index)
         x = self.atom_wise_list[1](x)
-        x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)
+        x = F.tanh(x)  # torch.log(0.5 * torch.exp(x) + 0.5)
         x = self.atom_wise_list[2](x)
 
         return x
 
 
-
 class DistilBertAppl(pl.LightningModule):
-
     def __init__(self, batch_size=32, hidden_s=128):
         super(DistilBertAppl, self).__init__()
         self.hidden_s = hidden_s
-        self.config = DistilBertConfig(vocab_size=6, max_position_embeddings=29, dim=self.hidden_s, num_labels=1, n_heads=4,
-                              **{'problem_type': 'regression'})
+        self.config = DistilBertConfig(
+            vocab_size=6,
+            max_position_embeddings=29,
+            dim=self.hidden_s,
+            num_labels=1,
+            n_heads=4,
+            **{"problem_type": "regression"}
+        )
         self.bert = DistilBertForSequenceClassification(self.config)
-        self.emb = nn.Embedding(num_embeddings=6, embedding_dim=self.hidden_s, padding_idx=0)
-        #self.conv = ContConv()
-        self.interaction_list = nn.Sequential(InterBlock(),InterBlock(),InterBlock())
+        self.emb = nn.Embedding(
+            num_embeddings=6, embedding_dim=self.hidden_s, padding_idx=0
+        )
+        # self.conv = ContConv()
+        self.interaction_list = nn.Sequential(InterBlock(), InterBlock(), InterBlock())
         self.batch_size = batch_size
 
     def forward(self, sample):
 
         x = self.emb(sample.modif_z)
-        #x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
+        # x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
         for interaction_block in self.interaction_list:
-            x = interaction_block(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
-        res = self.bert(inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s), \
-          attention_mask=sample.attent_mask.reshape(self.batch_size, -1), \
-          labels=sample.y[:, 7])
-        return res['loss']
+            x = interaction_block(
+                x, sample.edge_attr.reshape(-1).float(), sample.edge_index
+            )
+        res = self.bert(
+            inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s),
+            attention_mask=sample.attent_mask.reshape(self.batch_size, -1),
+            labels=sample.y[:, 7],
+        )
+        return res["loss"]
 
     def training_step(self, train_batch, batch_idx):
         loss = self.forward(train_batch)
-        self.log('train_loss', loss)
+        self.log("train_loss", loss)
         return loss
-
 
     def validation_step(self, val_batch, batch_idx):
         loss = self.forward(val_batch)
-        self.log('val_loss', loss)
-
+        self.log("val_loss", loss)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
         # sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
         #                                         0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
-        return [optimizer]#, [sched]
+        return [optimizer]  # , [sched]

@@ -4,28 +4,33 @@ import torch_geometric
 from torch_geometric.nn import MessagePassing
 import torch.nn.functional as F
 from torch_scatter import scatter
-import pytorch_lightning  as pl
+import pytorch_lightning as pl
 import numpy as np
 
 
 from transformers import (
-
-     PerceiverForSequenceClassification, PerceiverConfig, PerceiverTokenizer, PerceiverFeatureExtractor, PerceiverModel, PerceiverForMultimodalAutoencoding, PerceiverForImageClassificationLearned
+    PerceiverForSequenceClassification,
+    PerceiverConfig,
+    PerceiverTokenizer,
+    PerceiverFeatureExtractor,
+    PerceiverModel,
+    PerceiverForMultimodalAutoencoding,
+    PerceiverForImageClassificationLearned,
 )
 
 from transformers.models.perceiver.modeling_perceiver import (
-     PerceiverTextPreprocessor,
-     PerceiverImagePreprocessor,
-     PerceiverClassificationDecoder,
-     AbstractPreprocessor
- )
+    PerceiverTextPreprocessor,
+    PerceiverImagePreprocessor,
+    PerceiverClassificationDecoder,
+    AbstractPreprocessor,
+)
 
 
 class RbfExpand(nn.Module):
-    r'''
+    r"""
     Class for distance featurisation
 
-    '''
+    """
 
     def __init__(self, step=0.1, lower_bound=0, upper_bound=30, gamma=10):
         super(RbfExpand, self).__init__()
@@ -34,7 +39,9 @@ class RbfExpand(nn.Module):
         self.upper_bound = upper_bound
         self.gamma = gamma
         self.step = step
-        self.spaced_values = torch.arange(self.lower_bound, self.upper_bound, self.step, device='cuda:0')
+        self.spaced_values = torch.arange(
+            self.lower_bound, self.upper_bound, self.step, device="cuda:0"
+        )
 
     def forward(self, distances):
         distances = distances.unsqueeze(-1)
@@ -42,7 +49,6 @@ class RbfExpand(nn.Module):
 
 
 class MolecPreprocessor(AbstractPreprocessor):
-
     def __init__(self):
         super().__init__()
         self.rbf_layer = RbfExpand()
@@ -59,12 +65,18 @@ class MolecPreprocessor(AbstractPreprocessor):
 
     def forward(self, sample):
         batch_size = len(sample.idx)
-        distance = self.to_standart_form(sample=sample, param='distances_padded', batch_size=batch_size)
+        distance = self.to_standart_form(
+            sample=sample, param="distances_padded", batch_size=batch_size
+        )
         input_wo_pos = self.rbf_layer(distance)
         # do not forget about batches!!!
 
-        row = self.to_standart_form(sample=sample, param='row_padded', batch_size=batch_size)
-        col = self.to_standart_form(sample=sample, param='col_padded', batch_size=batch_size)
+        row = self.to_standart_form(
+            sample=sample, param="row_padded", batch_size=batch_size
+        )
+        col = self.to_standart_form(
+            sample=sample, param="col_padded", batch_size=batch_size
+        )
         pos_enc_row = self.emb(row)
         pos_enc_col = self.emb(col)
         pos_enc = torch.cat((pos_enc_row, pos_enc_col), dim=-1)
@@ -76,16 +88,15 @@ class MolecPreprocessor(AbstractPreprocessor):
 
 
 class MyPerceiver(PerceiverModel, pl.LightningModule):
-
     def forward(
-            self,
-            inputs,
-            attention_mask=None,
-            subsampled_output_points=None,
-            head_mask=None,
-            output_attentions=None,
-            output_hidden_states=None,
-            return_dict=None,
+        self,
+        inputs,
+        attention_mask=None,
+        subsampled_output_points=None,
+        head_mask=None,
+        output_attentions=None,
+        output_hidden_states=None,
+        return_dict=None,
     ):
         res = super().forward(
             # self,
@@ -99,27 +110,23 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
         )
         return res
 
-
     def mse(self, y_pred, y_true):
         return F.mse_loss(y_pred, y_true)
-
 
     def training_step(self, train_batch, batch_idx):
         logits = self.forward(train_batch).logits.reshape(-1)
         loss = self.mse(logits, train_batch.y[:, 7])
 
-        self.log('train_loss', loss)
+        self.log("train_loss", loss)
         return loss
-
 
     def validation_step(self, val_batch, batch_idx):
         logits = self.forward(val_batch).logits.reshape(-1)
         loss = self.mse(logits, val_batch.y[:, 7])
-        self.log('val_loss', loss)
-
+        self.log("val_loss", loss)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
         # sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
         #                                         0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
-        return [optimizer]#, [sched]
+        return [optimizer]  # , [sched]

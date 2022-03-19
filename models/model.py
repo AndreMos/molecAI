@@ -4,8 +4,9 @@ import torch_geometric
 from torch_geometric.nn import MessagePassing
 import torch.nn.functional as F
 from torch_scatter import scatter
-import pytorch_lightning  as pl
+import pytorch_lightning as pl
 import numpy as np
+
 
 class CosineCutoff(nn.Module):
     r"""Class of Behler cosine cutoff.
@@ -36,30 +37,31 @@ class CosineCutoff(nn.Module):
         cutoffs *= (distances < self.cutoff).float()
         return cutoffs
 
+
 class ContConv(MessagePassing):
-    r'''
+    r"""
     Filtering network
-    '''
+    """
 
     def __init__(self):
         super(ContConv, self).__init__()
         self.rbf = RbfExpand()
-        self.dense = [nn.Linear(300, 64), \
-                      nn.Linear(64, 64)]
+        self.dense = [nn.Linear(300, 64), nn.Linear(64, 64)]
         self.cutoff = CosineCutoff()
-    def forward(self, x: torch.Tensor,
-                r: torch.Tensor,
-                edge_index: torch.Tensor) -> torch.Tensor:
+
+    def forward(
+        self, x: torch.Tensor, r: torch.Tensor, edge_index: torch.Tensor
+    ) -> torch.Tensor:
         r"""Forward pass through the Conv block.
-                               Parameters
-                               ----------
-                               x:
-                                   Embedded properties of charges of the system (n-atoms, n_hidden)
-                               r:
-                                   interatomic distances (n_edges, )
+        Parameters
+        ----------
+        x:
+            Embedded properties of charges of the system (n-atoms, n_hidden)
+        r:
+            interatomic distances (n_edges, )
 
 
-                               """
+        """
         # print('R do', r.shape)
         C = self.cutoff(r)
         r = self.rbf(r)
@@ -67,7 +69,7 @@ class ContConv(MessagePassing):
 
         for dense_instance in self.dense:
             r = dense_instance(r)
-            r = F.tanh(r)#torch.log(0.5 * torch.exp(r) + 0.5)
+            r = F.tanh(r)  # torch.log(0.5 * torch.exp(r) + 0.5)
         r = r * C.unsqueeze(-1)
         prop = self.propagate(edge_index, x=x, W=r, size=None)
         # print(r.shape, x.shape, prop.shape)
@@ -78,10 +80,10 @@ class ContConv(MessagePassing):
 
 
 class RbfExpand(nn.Module):
-    r'''
+    r"""
     Class for distance featurisation
 
-    '''
+    """
 
     def __init__(self, step=0.1, lower_bound=0, upper_bound=30, gamma=10):
         super(RbfExpand, self).__init__()
@@ -98,32 +100,31 @@ class RbfExpand(nn.Module):
 
 
 class InterBlock(nn.Module):
-
     def __init__(self):
         super(InterBlock, self).__init__()
         self.conv = ContConv()
 
         self.atom_wise_list = [nn.Linear(64, 64)] * 3  # [nn.Linear(64, 64)]
 
-    def forward(self, x: torch.Tensor,
-                r: torch.Tensor,
-                edge_index: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, r: torch.Tensor, edge_index: torch.Tensor
+    ) -> torch.Tensor:
         r"""Forward pass through the Interaction block.
-                       Parameters
-                       ----------
-                       x:
-                           Embedded properties of charges of the system (n-atoms, n_hidden)
-                       r:
-                           interatomic distances (n_edges, )
+        Parameters
+        ----------
+        x:
+            Embedded properties of charges of the system (n-atoms, n_hidden)
+        r:
+            interatomic distances (n_edges, )
 
 
-                       """
+        """
         x = self.atom_wise_list[0](x)
         # print('x shape ', x.shape)
         # print(type(x), type(r))
         x = self.conv(x, r, edge_index)
         x = self.atom_wise_list[1](x)
-        x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)
+        x = F.tanh(x)  # torch.log(0.5 * torch.exp(x) + 0.5)
         x = self.atom_wise_list[2](x)
 
         return x
@@ -142,28 +143,30 @@ class Schnet(pl.LightningModule):
         self.interaction_list = [InterBlock()] * 3
         self.atom_wise32 = nn.Linear(64, 32)
         self.atom_wise1 = nn.Linear(32, 1)
-        self.corr_dict = {1 : 1, 6 : 2, 7 : 3, 8 : 4, 9 : 5}
+        self.corr_dict = {1: 1, 6: 2, 7: 3, 8: 4, 9: 5}
 
     def forward(self, sample):
         # graph : torch_geometric.data.Data,
         # charges : torch.Tensor,
         # keys : torch.Tensor): #-> (torch.Tensor, torch.Tensor):
         r"""Forward pass through the SchNet architecture.
-                Parameters
-                ----------
-                graph:
-                    Input torch-geom data graph object containing batch atom positions
-                charges:
-                    Input tensor containing charges of atoms (n_atoms, )
+        Parameters
+        ----------
+        graph:
+            Input torch-geom data graph object containing batch atom positions
+        charges:
+            Input tensor containing charges of atoms (n_atoms, )
 
-                Returns
-                -------
-                force:
-                   force acting on each atom in the system (n_atoms, 3)
-                energy:
-                    PMF of the system, scalar
-                """
-        charges = torch.tensor([self.corr_dict[x.item()] for x in sample.z], dtype=torch.long)
+        Returns
+        -------
+        force:
+           force acting on each atom in the system (n_atoms, 3)
+        energy:
+            PMF of the system, scalar
+        """
+        charges = torch.tensor(
+            [self.corr_dict[x.item()] for x in sample.z], dtype=torch.long
+        )
         x = self.emb(charges)
         # self.transform(graph)
         r = sample.edge_attr.reshape(-1).float()
@@ -172,7 +175,7 @@ class Schnet(pl.LightningModule):
             x += interaction_block(x, r, sample.edge_index)
         # print(x.shape)
         x = self.atom_wise32(x)
-        x = F.tanh(x)#torch.log(0.5 * torch.exp(x) + 0.5)
+        x = F.tanh(x)  # torch.log(0.5 * torch.exp(x) + 0.5)
         # print(x.shape)
         energy = self.atom_wise1(x)
         # force = -torch.autograd.grad(
@@ -193,16 +196,18 @@ class Schnet(pl.LightningModule):
         x, y = train_batch, train_batch.y[:, 7]
         logits = self.forward(x)
         loss = self.mse(logits, y)
-        self.log('train_loss', loss)
+        self.log("train_loss", loss)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch, val_batch.y[:, 7]
         logits = self.forward(x)
         loss = self.mse(logits, y)
-        self.log('val_loss', loss)
+        self.log("val_loss", loss)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
-        sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000, 0.96)#torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        sched = torch.optim.lr_scheduler.StepLR(
+            optimizer, 100000, 0.96
+        )  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
         return [optimizer], [sched]
