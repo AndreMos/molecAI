@@ -8,13 +8,14 @@
 # SBATCH --mem 4GB
 import sys
 import os
-import pytorch_lightning as pl
-import torch_geometric
+
 
 sys.path.append(os.getcwd())
 
 
 from models.model_bert import DistilBertAppl
+import torch_geometric
+import pytorch_lightning as pl
 
 # from model_mult_mod import  MultiMod
 # from model_perceiver import MyPerceiver, MolecPreprocessor
