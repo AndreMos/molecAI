@@ -82,11 +82,11 @@ class DistilBertAppl(pl.LightningModule):
 
 
 class CFConv(MessagePassing):
-    def __init__(self, in_channels, out_channels, num_filters, nn, cutoff):
+    def __init__(self, in_channels, out_channels, num_filters, mlp, cutoff):
         super().__init__(aggr="add")
         self.lin1 = nn.Linear(in_channels, num_filters, bias=False)
         self.lin2 = nn.Linear(num_filters, out_channels)
-        self.nn = nn
+        self.nn = mlp
         self.cutoff = cutoff
 
         self.reset_parameters()
