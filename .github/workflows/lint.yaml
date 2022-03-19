@@ -1,11 +1,8 @@
 name: Lint
 
 on:
-  push:
-    branches: [ main ]
-  pull_request_target: # Run on fork PRs
-    branches: [ main ]
-    types: [opened, reopened, synchronize]
+  [push]
+
 
 jobs:
   run-linters:
