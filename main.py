@@ -1,13 +1,11 @@
 #! /usr/bin/env python3
-# fmt: off
-# SBATCH -o distilbertONcvconv
-# SBATCH -p gpu
-# SBATCH -D /data/scratch/andrem97
-# SBATCH --gres=gpu:1
-# SBATCH --time 16:00:00
-# SBATCH -J testjob
-# SBATCH --mem 4GB
-# fmt: on
+#SBATCH -o distilbertONcvconv
+#SBATCH -p gpu
+#SBATCH -D /data/scratch/andrem97
+#SBATCH --gres=gpu:1
+#SBATCH --time 16:00:00
+#SBATCH -J testjob
+#SBATCH --mem 4GB
 import sys
 import os
 
