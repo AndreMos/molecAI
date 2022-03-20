@@ -1,9 +1,12 @@
 import torch.nn as nn
 import torch
 
-from torch_geometric.nn import MessagePassing
+
 
 import pytorch_lightning as pl
+from torch_geometric.nn import MessagePassing, radius_graph
+from torch_geometric.nn import SchNet
+
 import numpy as np
 from transformers import DistilBertConfig, DistilBertForSequenceClassification
 
@@ -41,22 +44,28 @@ class DistilBertAppl(pl.LightningModule):
         )
 
         self.batch_size = batch_size
-        self.cvconf = CFConv(
-            self.hidden_s, self.hidden_s, self.num_filters, self.mlp, self.cutoff
-        )
+        # self.cvconf = CFConv(
+        #     self.hidden_s, self.hidden_s, self.num_filters, self.mlp, self.cutoff
+        # )
+
+        self.inter_block = CustomSchnet()
+
         self.expand = GaussianSmearing()
 
     def forward(self, sample):
 
-        x = self.emb(sample.modif_z)
-        # x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
 
-        x = self.cvconf(
-            x,
-            sample.edge_index,
-            sample.edge_attr.reshape(-1).float(),
-            self.expand(sample.edge_attr),
-        )
+        x = self.inter_block(sample.modif_z, sample.pos, sample.edge_index)
+
+        # x = self.emb(sample.modif_z)
+        # # x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
+        #
+        # x = self.cvconf(
+        #     x,
+        #     sample.edge_index,
+        #     sample.edge_attr.reshape(-1).float(),
+        #     self.expand(sample.edge_attr),
+        # )
 
         res = self.bert(
             inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s),
@@ -79,6 +88,28 @@ class DistilBertAppl(pl.LightningModule):
         # sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
         #                                         0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
         return [optimizer]  # , [sched]
+
+
+
+
+
+class CustomSchnet(SchNet):
+
+    def forward(self, z, pos, edge_index, batch=None):
+        """"""
+
+
+        h = self.embedding(z)
+
+        # edge_index = radius_graph(pos, r=self.cutoff, batch=batch,
+        #                           max_num_neighbors=self.max_num_neighbors)
+        row, col = edge_index
+        edge_weight = (pos[row] - pos[col]).norm(dim=-1)
+        edge_attr = self.distance_expansion(edge_weight)
+
+        for interaction in self.interactions:
+            h = h + interaction(h, edge_index, edge_weight, edge_attr)
+        return h
 
 
 class CFConv(MessagePassing):
