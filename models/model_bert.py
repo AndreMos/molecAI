@@ -95,6 +95,12 @@ class DistilBertAppl(pl.LightningModule):
 
 class CustomSchnet(SchNet):
 
+    def __init__(self):
+        super().__init__()
+        self.embedding = nn.Embedding(
+            num_embeddings=6, embedding_dim=128, padding_idx=0
+        )
+
     def forward(self, z, pos, edge_index, batch=None):
         """"""
 
