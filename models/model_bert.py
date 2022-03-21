@@ -55,7 +55,7 @@ class DistilBertAppl(pl.LightningModule):
     def forward(self, sample):
 
 
-        x = self.inter_block(sample.modif_z, sample.pos, sample.edge_index)
+        x = self.inter_block(sample.modif_z, sample.pos, sample.batch)
 
         # x = self.emb(sample.modif_z)
         # # x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
@@ -101,14 +101,14 @@ class CustomSchnet(SchNet):
             num_embeddings=6, embedding_dim=128, padding_idx=0
         )
 
-    def forward(self, z, pos, edge_index, batch=None):
+    def forward(self, z, pos, batch=None):
         """"""
 
 
         h = self.embedding(z)
 
-        # edge_index = radius_graph(pos, r=self.cutoff, batch=batch,
-        #                           max_num_neighbors=self.max_num_neighbors)
+        edge_index = radius_graph(pos, r=10, batch=batch,
+                                  max_num_neighbors=32)
         row, col = edge_index
         edge_weight = (pos[row] - pos[col]).norm(dim=-1)
         edge_attr = self.distance_expansion(edge_weight)
