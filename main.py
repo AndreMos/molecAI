@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-#SBATCH -o distilbertONinterblockstackedWITHradiusgraph
+#SBATCH -o distilbertONoneinterblockdWITHradiusgraph
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1

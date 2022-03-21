@@ -113,8 +113,9 @@ class CustomSchnet(SchNet):
         edge_weight = (pos[row] - pos[col]).norm(dim=-1)
         edge_attr = self.distance_expansion(edge_weight)
 
-        for interaction in self.interactions:
-            h = h + interaction(h, edge_index, edge_weight, edge_attr)
+        h = self.interactions[0](h, edge_index, edge_weight, edge_attr)
+        # for interaction in self.interactions:
+        #     h = h + interaction(h, edge_index, edge_weight, edge_attr)
         return h
 
 
