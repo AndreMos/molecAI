@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
-# SBATCH -o distilbertONoneinterblockdWITHradiusgraphANDcorrectz
-# SBATCH -p gpu
-# SBATCH -D /data/scratch/andrem97
-# SBATCH --gres=gpu:1
-# SBATCH --time 18:00:00
-# SBATCH -J testjob
-# SBATCH --mem 4GB
+#SBATCH -o distilbertONoneinterblockdWITHradiusgraphANDcorrectz
+#SBATCH -p gpu
+#SBATCH -D /data/scratch/andrem97
+#SBATCH --gres=gpu:1
+#SBATCH --time 18:00:00
+#SBATCH -J testjob
+#SBATCH --mem 8GB
 import sys
 import os
 

@@ -29,6 +29,8 @@ class DistilBertAppl(pl.LightningModule):
             dim=self.hidden_s,
             num_labels=1,
             n_heads=4,
+            hidden_dim=512,
+            n_layers=4,
             **{"problem_type": "regression"}
         )
         self.bert = DistilBertForSequenceClassification(self.config)
