@@ -70,7 +70,7 @@ class DistilBertAppl(pl.LightningModule):
         x = torch.cat(
             [
                 nn.ConstantPad1d((0, 29 - len(tens)), 0)(tens.T).T
-                for tens in torch.tensor_split(x, sample.ptr[1:-1])
+                for tens in torch.tensor_split(x, sample.ptr[1:-1].to('cpu'))
             ]
         )  # .reshape(self.batch_size, -1, self.hidden_s)
 
