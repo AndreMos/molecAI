@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch
 
 
-
 import pytorch_lightning as pl
 from torch_geometric.nn import MessagePassing, radius_graph
 from torch_geometric.nn import SchNet
@@ -37,11 +36,11 @@ class DistilBertAppl(pl.LightningModule):
             num_embeddings=6, embedding_dim=self.hidden_s, padding_idx=0
         )
 
-        self.mlp = nn.Sequential(
-            nn.Linear(self.num_gaussians, self.num_filters),
-            ShiftedSoftplus(),
-            nn.Linear(self.num_filters, self.num_filters),
-        )
+        # self.mlp = nn.Sequential(
+        #     nn.Linear(self.num_gaussians, self.num_filters),
+        #     ShiftedSoftplus(),
+        #     nn.Linear(self.num_filters, self.num_filters),
+        # )
 
         self.batch_size = batch_size
         # self.cvconf = CFConv(
@@ -50,12 +49,11 @@ class DistilBertAppl(pl.LightningModule):
 
         self.inter_block = CustomSchnet()
 
-        self.expand = GaussianSmearing()
+        # self.expand = GaussianSmearing()
 
     def forward(self, sample):
 
-
-        x = self.inter_block(sample.modif_z, sample.pos, sample.batch)
+        x = self.inter_block(sample.z, sample.pos, sample.batch)
 
         # x = self.emb(sample.modif_z)
         # # x = self.conv(x, sample.edge_attr.reshape(-1).float(), sample.edge_index)
@@ -66,6 +64,13 @@ class DistilBertAppl(pl.LightningModule):
         #     sample.edge_attr.reshape(-1).float(),
         #     self.expand(sample.edge_attr),
         # )
+
+        x = torch.cat(
+            [
+                nn.ConstantPad1d((0, 29 - len(tens)), 0)(tens.T).T
+                for tens in torch.tensor_split(x, sample.ptr[1:-1])
+            ]
+        )  # .reshape(self.batch_size, -1, self.hidden_s)
 
         res = self.bert(
             inputs_embeds=x.reshape(self.batch_size, -1, self.hidden_s),
@@ -90,11 +95,7 @@ class DistilBertAppl(pl.LightningModule):
         return [optimizer]  # , [sched]
 
 
-
-
-
 class CustomSchnet(SchNet):
-
     def __init__(self):
         super().__init__()
         self.embedding = nn.Embedding(
@@ -104,11 +105,9 @@ class CustomSchnet(SchNet):
     def forward(self, z, pos, batch=None):
         """"""
 
-
         h = self.embedding(z)
 
-        edge_index = radius_graph(pos, r=10, batch=batch,
-                                  max_num_neighbors=32)
+        edge_index = radius_graph(pos, r=10, batch=batch, max_num_neighbors=32)
         row, col = edge_index
         edge_weight = (pos[row] - pos[col]).norm(dim=-1)
         edge_attr = self.distance_expansion(edge_weight)
