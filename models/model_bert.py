@@ -28,11 +28,24 @@ class DistilBertAppl(pl.LightningModule):
             max_position_embeddings=29,
             dim=self.hidden_s,
             num_labels=1,
-            n_heads=4,
+            n_heads=2,
             hidden_dim=512,
-            n_layers=4,
-            **{"problem_type": "regression"}
+            n_layers=1,
+            dropout=0.0, attention_dropout=0.1, qa_dropout=0, seq_classif_dropout=0,
+
+            ** {"problem_type": "regression"}
         )
+        # self.config = DistilBertConfig(
+        #     vocab_size=6,
+        #     max_position_embeddings=29,
+        #     dim=self.hidden_s,
+        #     num_labels=1,
+        #     n_heads=4,
+        #     hidden_dim=512,
+        #     n_layers=4,
+        #     dropout=0.1, attention_dropout=0.1, qa_dropout=0, seq_classif_dropout=0
+        #     **{"problem_type": "regression"}
+        # )
         self.bert = DistilBertForSequenceClassification(self.config)
         self.emb = nn.Embedding(
             num_embeddings=6, embedding_dim=self.hidden_s, padding_idx=0
@@ -114,9 +127,9 @@ class CustomSchnet(SchNet):
         edge_weight = (pos[row] - pos[col]).norm(dim=-1)
         edge_attr = self.distance_expansion(edge_weight)
 
-        #h = self.interactions[0](h, edge_index, edge_weight, edge_attr)
-        for interaction in self.interactions:
-            h = h + interaction(h, edge_index, edge_weight, edge_attr)
+        h = self.interactions[0](h, edge_index, edge_weight, edge_attr)
+        # for interaction in self.interactions:
+        #     h = h + interaction(h, edge_index, edge_weight, edge_attr)
         return h
 
 
