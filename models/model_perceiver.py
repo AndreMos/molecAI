@@ -26,32 +26,22 @@ from transformers.models.perceiver.modeling_perceiver import (
 )
 
 
-class RbfExpand(nn.Module):
-    r"""
-    Class for distance featurisation
+class GaussianSmearing(nn.Module):
+    def __init__(self, start=0.0, stop=5.0, num_gaussians=50):
+        super().__init__()
+        offset = torch.linspace(start, stop, num_gaussians, device='cuda:0')
+        self.coeff = -0.5 / (offset[1] - offset[0]).item()**2
+        self.register_buffer('offset', offset)
 
-    """
-
-    def __init__(self, step=0.1, lower_bound=0, upper_bound=30, gamma=10):
-        super(RbfExpand, self).__init__()
-
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
-        self.gamma = gamma
-        self.step = step
-        self.spaced_values = torch.arange(
-            self.lower_bound, self.upper_bound, self.step, device="cuda:0"
-        )
-
-    def forward(self, distances):
-        distances = distances.unsqueeze(-1)
-        return torch.exp(-self.gamma * torch.pow((distances - self.spaced_values), 2))
+    def forward(self, dist):
+        dist = dist.view(-1, 1) - self.offset.view(1, -1)
+        return torch.exp(self.coeff * torch.pow(dist, 2))
 
 
 class MolecPreprocessor(AbstractPreprocessor):
     def __init__(self):
         super().__init__()
-        self.rbf_layer = RbfExpand()
+        self.rbf_layer = GaussianSmearing()
         ##zero index is USED!!!! 100 might be overkill
         self.emb = nn.Embedding(num_embeddings=100, embedding_dim=128, padding_idx=0)
         # self.to_standart_form = to_standart_form
@@ -61,7 +51,7 @@ class MolecPreprocessor(AbstractPreprocessor):
 
     @property
     def num_channels(self) -> int:
-        return 300 + 256
+        return 50 + 128
 
     def forward(self, sample):
         batch_size = len(sample.idx)
@@ -79,7 +69,7 @@ class MolecPreprocessor(AbstractPreprocessor):
         )
         pos_enc_row = self.emb(row)
         pos_enc_col = self.emb(col)
-        pos_enc = torch.cat((pos_enc_row, pos_enc_col), dim=-1)
+        pos_enc = pos_enc_row + pos_enc_col#torch.cat((pos_enc_row, pos_enc_col), dim=-1)
         input_w_pos = torch.cat((input_wo_pos, pos_enc), dim=-1)
         return input_w_pos, None, input_wo_pos
 
@@ -117,16 +107,16 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
         logits = self.forward(train_batch).logits.reshape(-1)
         loss = self.mse(logits, train_batch.y[:, 7])
 
-        self.log("train_loss", loss)
+        self.log("train_loss", loss, batch_size=32)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
         logits = self.forward(val_batch).logits.reshape(-1)
         loss = self.mse(logits, val_batch.y[:, 7])
-        self.log("val_loss", loss)
+        self.log("val_loss", loss, batch_size=32)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
-        # sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
-        #                                         0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
-        return [optimizer]  # , [sched]
+        optimizer = torch.optim.AdamW(self.parameters(), lr=5e-4)
+        sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
+                                                 0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        return [optimizer], [sched]
