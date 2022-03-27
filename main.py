@@ -12,7 +12,21 @@ import os
 
 sys.path.append(os.getcwd())
 
-
+from transformers import (
+    PerceiverForSequenceClassification,
+    PerceiverConfig,
+    PerceiverTokenizer,
+    PerceiverFeatureExtractor,
+    PerceiverModel,
+    PerceiverForMultimodalAutoencoding,
+    PerceiverForImageClassificationLearned,
+)
+from transformers.models.perceiver.modeling_perceiver import (
+    PerceiverTextPreprocessor,
+    PerceiverImagePreprocessor,
+    PerceiverClassificationDecoder,
+    AbstractPreprocessor,
+)
 from models.model_bert import DistilBertAppl
 import torch_geometric
 import pytorch_lightning as pl
