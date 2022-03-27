@@ -58,7 +58,7 @@ class MolecPreprocessor(AbstractPreprocessor):
         distance = self.to_standart_form(
             sample=sample, param="distances_padded", batch_size=batch_size
         )
-        input_wo_pos = self.rbf_layer(distance)
+        input_wo_pos = self.rbf_layer(distance).reshape(batch_size, -1, 50)
         # do not forget about batches!!!
 
         row = self.to_standart_form(
