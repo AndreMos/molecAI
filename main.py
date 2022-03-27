@@ -18,7 +18,7 @@ import torch_geometric
 import pytorch_lightning as pl
 
 # from model_mult_mod import  MultiMod
-from model_perceiver import MyPerceiver, MolecPreprocessor
+from models.model_perceiver import MyPerceiver, MolecPreprocessor
 
 
 from datasets.dataset_perceiver import CustomDataset
