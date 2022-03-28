@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
-#SBATCH -o perceiveronsummedposenc
+#SBATCH -o perceiveronsummedposencwithfactor30
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
-#SBATCH --time 24:00:00
+#SBATCH --time 36:00:00
 #SBATCH -J testjob
 #SBATCH --mem 8GB
 import sys
@@ -61,8 +61,8 @@ data_module = DataModule()
 # train
 
 config = PerceiverConfig(
-    num_latents=128, d_latents=512, num_labels=1,num_cross_attention_heads=2,
-    num_self_attends_per_block=5, attention_probs_dropout_prob=0, num_self_attention_heads=2
+    num_latents=32, d_latents=64, num_labels=1, num_cross_attention_heads=2,
+     attention_probs_dropout_prob=0.05, num_self_attention_heads=2
 )
 decoder = PerceiverClassificationDecoder(
     config,
