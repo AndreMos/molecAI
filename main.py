@@ -61,7 +61,7 @@ data_module = DataModule()
 # train
 
 config = PerceiverConfig(
-    num_latents=32, d_latents=128, num_labels=1, num_cross_attention_heads=8, num_self_attends_per_block = 10,
+    num_latents=32, d_latents=128, num_labels=1, num_cross_attention_heads=2, num_self_attends_per_block = 10,
      attention_probs_dropout_prob=0, num_self_attention_heads=8
 )
 decoder = PerceiverClassificationDecoder(
