@@ -73,8 +73,8 @@ decoder = PerceiverClassificationDecoder(
 )
 preprocessor = PerceiverMultimodalPreprocessor(min_padding_size=4,
                          modalities={
-                             'angles': AnglePreprocessor(),
-                             'dist' : MolecPreprocessor()
+                             'angles': AnglePreprocessor().to('cuda:0'),
+                             'dist' : MolecPreprocessor().to('cuda:0')
                              }
                                   )
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
