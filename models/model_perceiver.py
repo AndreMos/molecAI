@@ -95,7 +95,8 @@ class AnglePreprocessor(MolecPreprocessor):
         atom_types = self.to_standart_form(
             sample=sample, param="modif_z", batch_size=batch_size)
 
-        pos_enc = self.emb(atom_types.to('cuda:0'))
+        self.emb.to('cuda:0')
+        pos_enc = self.emb(atom_types)
         input_w_pos = torch.cat((input_wo_pos, pos_enc), dim=-1)
         return input_w_pos, None, input_wo_pos
 
