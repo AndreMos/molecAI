@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-#SBATCH -o perceiveronsummedposencwithfactor30andnumattents10
+#SBATCH -o perceiverangles
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
@@ -26,13 +26,14 @@ from transformers.models.perceiver.modeling_perceiver import (
     PerceiverImagePreprocessor,
     PerceiverClassificationDecoder,
     AbstractPreprocessor,
+    PerceiverMultimodalPreprocessor
 )
 from models.model_bert import DistilBertAppl
 import torch_geometric
 import pytorch_lightning as pl
 
 # from model_mult_mod import  MultiMod
-from models.model_perceiver import MyPerceiver, MolecPreprocessor
+from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreprocessor
 
 
 from datasets.dataset_perceiver import CustomDataset
@@ -70,8 +71,13 @@ decoder = PerceiverClassificationDecoder(
     trainable_position_encoding_kwargs=dict(num_channels=config.d_latents, index_dims=1),
     use_query_residual=True,
 )
-
-model = MyPerceiver(config, input_preprocessor=MolecPreprocessor(), decoder=decoder)
+preprocessor = PerceiverMultimodalPreprocessor(min_padding_size=4,
+                         modalities={
+                             'angles': AnglePreprocessor(),
+                             'dist' : MolecPreprocessor()
+                             }
+                                  )
+model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 
 
 #model = DistilBertAppl()

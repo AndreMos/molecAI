@@ -23,6 +23,7 @@ from transformers.models.perceiver.modeling_perceiver import (
     PerceiverImagePreprocessor,
     PerceiverClassificationDecoder,
     AbstractPreprocessor,
+
 )
 
 
@@ -77,6 +78,27 @@ class MolecPreprocessor(AbstractPreprocessor):
     #   return sample[param].reshape(batch_size, -1)
 
 
+class AnglePreprocessor(MolecPreprocessor):
+    def __init__(self):
+        super().__init__()
+        self.rbf_layer = GaussianSmearing(start=-1.0, stop=1)
+
+
+    def forward(self, sample, pos=None, network_input_is_1d=None):
+        batch_size = len(sample.idx)
+        angles = self.to_standart_form(
+            sample=sample, param="angle_padded", batch_size=batch_size
+        )
+        input_wo_pos = self.rbf_layer(angles).reshape(batch_size, -1, 50)
+        # do not forget about batches!!!
+
+        atom_types = self.to_standart_form(
+            sample=sample, param="modif_z", batch_size=batch_size)
+
+        pos_enc = self.emb(atom_types)
+        input_w_pos = torch.cat((input_wo_pos, pos_enc), dim=-1)
+        return input_w_pos, None, input_wo_pos
+
 class MyPerceiver(PerceiverModel, pl.LightningModule):
     def forward(
         self,
@@ -88,10 +110,14 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
         output_hidden_states=None,
         return_dict=None,
     ):
+        sample_inp = inputs
+        inputs = {'angles': inputs, 'dist': inputs}
+        #len(inputs.idx)
         res = super().forward(
             # self,
             inputs,
-            attention_mask=inputs.attent_dist.reshape(len(inputs.idx), -1),
+            attention_mask=torch.cat([sample_inp.attent_mask.reshape(len(sample_inp.idx), -1),
+                                      sample_inp.attent_dist.reshape(len(sample_inp.idx), -1)], dim=-1),
             subsampled_output_points=None,
             head_mask=None,
             output_attentions=None,
