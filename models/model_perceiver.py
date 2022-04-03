@@ -54,7 +54,7 @@ class MolecPreprocessor(AbstractPreprocessor):
     def num_channels(self) -> int:
         return 50 + 128
 
-    def forward(self, sample):
+    def forward(self, sample, pos=None, network_input_is_1d=None):
         batch_size = len(sample.idx)
         distance = self.to_standart_form(
             sample=sample, param="distances_padded", batch_size=batch_size
@@ -95,7 +95,7 @@ class AnglePreprocessor(MolecPreprocessor):
         atom_types = self.to_standart_form(
             sample=sample, param="modif_z", batch_size=batch_size)
 
-        pos_enc = self.emb(atom_types)
+        pos_enc = self.emb(atom_types.to('cuda:0'))
         input_w_pos = torch.cat((input_wo_pos, pos_enc), dim=-1)
         return input_w_pos, None, input_wo_pos
 
