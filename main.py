@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-#SBATCH -o perceiverangles2xlat4heads
+#SBATCH -o perceiverangles2xlat4headsfixeddict
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
@@ -12,6 +12,7 @@ import os
 
 sys.path.append(os.getcwd())
 
+import torch.nn as nn
 from transformers import (
     PerceiverForSequenceClassification,
     PerceiverConfig,
@@ -63,7 +64,7 @@ data_module = DataModule()
 
 config = PerceiverConfig(
     num_latents=64, d_latents=128, num_labels=1, num_cross_attention_heads=4, num_self_attends_per_block = 10,
-     attention_probs_dropout_prob=0.1, num_self_attention_heads=8
+     attention_probs_dropout_prob=0, num_self_attention_heads=8
 )
 decoder = PerceiverClassificationDecoder(
     config,
@@ -72,10 +73,10 @@ decoder = PerceiverClassificationDecoder(
     use_query_residual=True,
 )
 preprocessor = PerceiverMultimodalPreprocessor(min_padding_size=2,
-                         modalities={
-                             'angles': AnglePreprocessor().to('cuda:0'),
-                             'dist' : MolecPreprocessor().to('cuda:0')
-                             }
+                         modalities=nn.ModuleDict({
+                             'angles': AnglePreprocessor(),
+                             'dist' : MolecPreprocessor()
+                             })
                                   )
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 
