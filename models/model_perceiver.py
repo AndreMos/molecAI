@@ -119,7 +119,7 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
                                       sample_inp.attent_dist.reshape(len(sample_inp.idx), -1)], dim=-1),
             subsampled_output_points=None,
             head_mask=None,
-            output_attentions=None,
+            output_attentions=True,
             output_hidden_states=None,
             return_dict=None,
         )
