@@ -53,7 +53,7 @@ class MolecPreprocessor(AbstractPreprocessor):
 
     @property
     def num_channels(self) -> int:
-        return 64 + 128*2
+        return 62 + 128*2
 
     def forward(self, sample, pos=None, network_input_is_1d=None):
         batch_size = len(sample.idx)
@@ -91,7 +91,7 @@ class AnglePreprocessor(MolecPreprocessor):
 
     @property
     def num_channels(self) -> int:
-        return 64 + 128
+        return 62 + 128
 
     def forward(self, sample, pos=None, network_input_is_1d=None):
         batch_size = len(sample.idx)
