@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 #SBATCH -o perceiverbonds
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
