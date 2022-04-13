@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
-#SBATCH -o perceiverangles2xlat1head
+#SBATCH -o perceiverbonds
 #SBATCH -p gpu
 #SBATCH -D /data/scratch/andrem97
 #SBATCH --gres=gpu:1
-#SBATCH --time 36:00:00
+#SBATCH --time 48:00:00
 #SBATCH -J testjob
 #SBATCH --mem 8GB
 import sys
@@ -63,7 +63,7 @@ data_module = DataModule()
 # train
 
 config = PerceiverConfig(
-    num_latents=64, d_latents=128, num_labels=1, num_cross_attention_heads=1, num_self_attends_per_block = 10,
+    num_latents=64, d_latents=128, num_labels=1, num_cross_attention_heads=8, num_self_attends_per_block = 10,
      attention_probs_dropout_prob=0, num_self_attention_heads=8
 )
 decoder = PerceiverClassificationDecoder(
