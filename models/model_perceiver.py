@@ -28,7 +28,7 @@ from transformers.models.perceiver.modeling_perceiver import (
 
 
 class GaussianSmearing(nn.Module):
-    def __init__(self, start=0.0, stop=5.0, num_gaussians=64):
+    def __init__(self, start=0.0, stop=5.0, num_gaussians=62):
         super().__init__()
         offset = torch.linspace(start, stop, num_gaussians, device='cuda:0')
         self.coeff = -0.5 / (offset[1] - offset[0]).item()**2
@@ -60,7 +60,7 @@ class MolecPreprocessor(AbstractPreprocessor):
         distance = self.to_standart_form(
             sample=sample, param="distances_padded", batch_size=batch_size
         )
-        input_wo_pos = self.rbf_layer(distance).reshape(batch_size, -1, 50)
+        input_wo_pos = self.rbf_layer(distance).reshape(batch_size, -1, 62)
         # do not forget about batches!!!
 
         row = self.to_standart_form(
@@ -98,7 +98,7 @@ class AnglePreprocessor(MolecPreprocessor):
         angles = self.to_standart_form(
             sample=sample, param="angle_padded", batch_size=batch_size
         )
-        input_wo_pos = self.rbf_layer(angles).reshape(batch_size, -1, 50)
+        input_wo_pos = self.rbf_layer(angles).reshape(batch_size, -1, 62)
         # do not forget about batches!!!
 
         atom_types = self.to_standart_form(
