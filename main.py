@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #SBATCH -o perceiverbonds
 #SBATCH -p gpu
-#SBATCH -D /data/scratch2/andrem97
+#SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
 #SBATCH --time 48:00:00
 #SBATCH -J testjob
