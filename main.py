@@ -40,12 +40,14 @@ from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreproce
 
 from datasets.dataset_perceiver import CustomDataset
 
+base_path = "/data/scratch2/andrem97/molecAI/"
 
 
 # train
 @hydra.main(config_path=base_path + "configs", config_name="config")
 def run_pipe(config):
     base_path = "/data/scratch2/andrem97/molecAI/"
+
     # DO NOT FORGET TO CUT PRETRANSFORM
     dataset = CustomDataset(
         base_path,
