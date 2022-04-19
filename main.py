@@ -40,21 +40,21 @@ from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreproce
 
 from datasets.dataset_perceiver import CustomDataset
 
-
+base_path = "/data/scratch2/andrem97/molecAI/"
 # DO NOT FORGET TO CUT PRETRANSFORM
 dataset = CustomDataset(
-    "/data/scratch2/andrem97/molecAI/",
+    base_path,
 )
 
 
 class DataModule(pl.LightningDataModule):
-    @hydra.main(config_path="configs", config_name="config")
+    @hydra.main(config_path=base_path + "configs", config_name="config")
     def train_dataloader(self, config):
         return torch_geometric.loader.DataLoader(
             dataset[:110462], shuffle=True, batch_size=config.perceiver.batch_size, **{"drop_last": True}
         )
 
-    @hydra.main(config_path="configs", config_name="config")
+    @hydra.main(config_path=base_path + "configs", config_name="config")
     def val_dataloader(self, config):
         return torch_geometric.loader.DataLoader(
             dataset[110462:111462], batch_size=config.perceiver.batch_size, **{"drop_last": True}
@@ -64,7 +64,7 @@ class DataModule(pl.LightningDataModule):
 data_module = DataModule()
 
 # train
-@hydra.main(config_path="configs", config_name="config")
+@hydra.main(config_path=base_path + "configs", config_name="config")
 def load_config(config):
     allias = config.repceiver.config
     perc_conf = PerceiverConfig(
