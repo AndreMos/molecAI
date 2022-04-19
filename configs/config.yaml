@@ -1,0 +1,11 @@
+perceiver:
+  initial:
+    num_latents: 64
+    d_latents: 128
+    num_labels: 1
+    num_cross_attention_heads: 8
+    num_self_attends_per_block: 10
+    attention_probs_dropout_prob: 0
+    num_self_attention_heads: 8
+  min_padding_size: 2
+  batch_size: 32
