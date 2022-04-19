@@ -66,7 +66,7 @@ data_module = DataModule()
 # train
 @hydra.main(config_path=base_path + "configs", config_name="config")
 def load_config(config):
-    allias = config.perceiver.config
+    allias = config.perceiver.initial
     perc_conf = PerceiverConfig(
     num_latents=allias.num_latents, d_latents=allias.d_latents, num_labels=allias.num_labels, num_cross_attention_heads=allias.num_cross_attention_heads, num_self_attends_per_block = allias.num_self_attends_per_block,
      attention_probs_dropout_prob=allias.attention_probs_dropout_prob, num_self_attention_heads=allias.num_self_attention_heads
