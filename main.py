@@ -73,11 +73,11 @@ def run_pipe(config):
      attention_probs_dropout_prob=allias.attention_probs_dropout_prob, num_self_attention_heads=allias.num_self_attention_heads
     )
     min_padding_size = config.perceiver.min_padding_size
-    config = perc_conf
+
     decoder = PerceiverClassificationDecoder(
-        config,
-        num_channels=config.d_latents,
-        trainable_position_encoding_kwargs=dict(num_channels=config.d_latents, index_dims=1),
+        perc_conf,
+        num_channels=perc_conf.d_latents,
+        trainable_position_encoding_kwargs=dict(num_channels=perc_conf.d_latents, index_dims=1),
         use_query_residual=True,
     )
     preprocessor = PerceiverMultimodalPreprocessor(min_padding_size=min_padding_size,
@@ -87,7 +87,7 @@ def run_pipe(config):
                                  })
                                       )
 
-    model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
+    model = MyPerceiver(perc_conf, input_preprocessor=preprocessor, decoder=decoder)
     trainer = pl.Trainer(gpus=1)
     trainer.fit(model, data_module)
 
