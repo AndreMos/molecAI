@@ -43,7 +43,7 @@ from datasets.dataset_perceiver import CustomDataset
 
 # DO NOT FORGET TO CUT PRETRANSFORM
 dataset = CustomDataset(
-    "/data/scratch/andrem97/",
+    "/data/scratch2/andrem97/molecAI/",
 )
 
 
