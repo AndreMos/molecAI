@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#SBATCH -o try
+#SBATCH -o perceiverbonds
 #SBATCH -p gpu
 #SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
@@ -62,14 +62,14 @@ class DataModule(pl.LightningDataModule):
             dataset[:110462],
             shuffle=True,
             batch_size=cfg.perceiver.batch_size,
-            **{"drop_last": True}
+            **{"drop_last": True, 'num_workers' : 16}
         )
 
     def val_dataloader(self):
         return torch_geometric.loader.DataLoader(
             dataset[110462:111462],
             batch_size=cfg.perceiver.batch_size,
-            **{"drop_last": True}
+            **{"drop_last": True, 'num_workers' : 16}
         )
 
 
@@ -104,5 +104,5 @@ preprocessor = PerceiverMultimodalPreprocessor(
 )
 
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
-trainer = pl.Trainer(gpus=1, logger=DAGsHubLogger(metrics_path="logs/test_metrics.csv", hparams_path="logs/test_params.yml"))
+trainer = pl.Trainer(gpus=1, logger=DAGsHubLogger())
 trainer.fit(model, data_module)
