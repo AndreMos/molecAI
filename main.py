@@ -104,5 +104,5 @@ preprocessor = PerceiverMultimodalPreprocessor(
 )
 
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
-trainer = pl.Trainer(gpus=1, logger=DAGsHubLogger())
+trainer = pl.Trainer(gpus=1)
 trainer.fit(model, data_module)
