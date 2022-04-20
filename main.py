@@ -104,6 +104,5 @@ preprocessor = PerceiverMultimodalPreprocessor(
 )
 
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
-trainer = pl.Trainer(gpus=1, logger=DAGsHubLogger(metrics_path="logs/test_metrics.csv", hparams_path="logs/test_params.yml"),
-          default_save_path='lightning_logs')
+trainer = pl.Trainer(gpus=1, logger=DAGsHubLogger(metrics_path="logs/test_metrics.csv", hparams_path="logs/test_params.yml"))
 trainer.fit(model, data_module)
