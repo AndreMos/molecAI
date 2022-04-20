@@ -33,7 +33,8 @@ from models.model_bert import DistilBertAppl
 import torch_geometric
 import pytorch_lightning as pl
 from pathlib import Path
-from dagshub.pytorch_lightning import DagsHubLogger
+
+from dagshub.pytorch_lightning import DAGsHubLogger
 
 # from model_mult_mod import  MultiMod
 from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreprocessor
@@ -103,6 +104,6 @@ preprocessor = PerceiverMultimodalPreprocessor(
 )
 
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
-trainer = pl.Trainer(gpus=1, logger=DagsHubLogger(metrics_path="logs/test_metrics.csv", hparams_path="logs/test_params.yml"),
+trainer = pl.Trainer(gpus=1, logger=DAGsHubLogger(metrics_path="logs/test_metrics.csv", hparams_path="logs/test_params.yml"),
           default_save_path='lightning_logs')
 trainer.fit(model, data_module)
