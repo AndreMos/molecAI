@@ -14,13 +14,14 @@ dir: "/data/scratch2/andrem97/"
 
 gaussian_smear:
   num_gaussians: 62
+  emb_size: 128
   angle:
     start: -1
     stop: 1
-    emb_size: 128
+    pos_enc_size: 128
   dist:
     start: 0
     stop: 5
-    emb_size: 256
+    pos_enc_size: 256
 
 

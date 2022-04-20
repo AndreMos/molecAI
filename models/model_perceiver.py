@@ -56,12 +56,12 @@ class MolecPreprocessor(AbstractPreprocessor):
         ##zero index is USED!!!! 100 might be overkill
         self.emb = nn.Embedding(
             num_embeddings=100,
-            embedding_dim=cfg.gaussian_smear.dist.emb_size,
+            embedding_dim=cfg.gaussian_smear.emb_size,
             padding_idx=0,
         )
         self.bond_type_emb = nn.Embedding(
             num_embeddings=10,
-            embedding_dim=cfg.gaussian_smear.dist.emb_size,
+            embedding_dim=cfg.gaussian_smear.emb_size,
             padding_idx=0,
         )
         # self.to_standart_form = to_standart_form
@@ -71,7 +71,7 @@ class MolecPreprocessor(AbstractPreprocessor):
 
     @property
     def num_channels(self) -> int:
-        return cfg.gaussian_smear.num_gaussians + cfg.gaussian_smear.dist.emb_size
+        return cfg.gaussian_smear.num_gaussians + cfg.gaussian_smear.dist.pos_enc_size
 
     def forward(self, sample, pos=None, network_input_is_1d=None):
         batch_size = len(sample.idx)
@@ -115,7 +115,7 @@ class AnglePreprocessor(MolecPreprocessor):
 
     @property
     def num_channels(self) -> int:
-        return cfg.gaussian_smear.num_gaussians + cfg.gaussian_smear.angle.emb_size
+        return cfg.gaussian_smear.num_gaussians + cfg.gaussian_smear.angle.pos_enc_size
 
     def forward(self, sample, pos=None, network_input_is_1d=None):
         batch_size = len(sample.idx)
