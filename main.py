@@ -33,6 +33,7 @@ from transformers.models.perceiver.modeling_perceiver import (
 from models.model_bert import DistilBertAppl
 import torch_geometric
 import pytorch_lightning as pl
+from pathlib import Path
 
 # from model_mult_mod import  MultiMod
 from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreprocessor
@@ -40,13 +41,17 @@ from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreproce
 
 from datasets.dataset_perceiver import CustomDataset
 
-base_path = "/data/scratch2/andrem97/molecAI/"
 
+from hydra import initialize, initialize_config_module, initialize_config_dir, compose
 
-# train
-@hydra.main(config_path=base_path + "configs", config_name="config")
-def run_pipe(config):
-    base_path = "/data/scratch2/andrem97/molecAI/"
+base_path = Path.cwd()
+with initialize( config_path= str(base_path / "configs")):
+    cfg = compose(config_name="config.yaml")
+
+# DO NOT FORGET TO CUT PRETRANSFORM
+dataset = CustomDataset(
+    cfg.dir,
+)
 
     # DO NOT FORGET TO CUT PRETRANSFORM
     dataset = CustomDataset(
@@ -59,37 +64,38 @@ def run_pipe(config):
                 dataset[:110462], shuffle=True, batch_size=config.perceiver.batch_size, **{"drop_last": True}
             )
 
-
         def val_dataloader(self):
             return torch_geometric.loader.DataLoader(
                 dataset[110462:111462], batch_size=config.perceiver.batch_size, **{"drop_last": True}
             )
 
-    data_module = DataModule()
 
-    allias = config.perceiver.initial
-    perc_conf = PerceiverConfig(
-    num_latents=allias.num_latents, d_latents=allias.d_latents, num_labels=allias.num_labels, num_cross_attention_heads=allias.num_cross_attention_heads, num_self_attends_per_block = allias.num_self_attends_per_block,
-     attention_probs_dropout_prob=allias.attention_probs_dropout_prob, num_self_attention_heads=allias.num_self_attention_heads
-    )
-    min_padding_size = config.perceiver.min_padding_size
+# train
 
-    decoder = PerceiverClassificationDecoder(
-        perc_conf,
-        num_channels=perc_conf.d_latents,
-        trainable_position_encoding_kwargs=dict(num_channels=perc_conf.d_latents, index_dims=1),
-        use_query_residual=True,
-    )
-    preprocessor = PerceiverMultimodalPreprocessor(min_padding_size=min_padding_size,
-                             modalities=nn.ModuleDict({
-                                 'angles': AnglePreprocessor(),
-                                 'dist' : MolecPreprocessor()
-                                 })
-                                      )
+allias = cfg.perceiver.initial
+config = PerceiverConfig(
+num_latents=allias.num_latents, d_latents=allias.d_latents, num_labels=allias.num_labels, num_cross_attention_heads=allias.num_cross_attention_heads, num_self_attends_per_block = allias.num_self_attends_per_block,
+ attention_probs_dropout_prob=allias.attention_probs_dropout_prob, num_self_attention_heads=allias.num_self_attention_heads
+)
+min_padding_size = cfg.perceiver.min_padding_size
 
-    model = MyPerceiver(perc_conf, input_preprocessor=preprocessor, decoder=decoder)
-    trainer = pl.Trainer(gpus=1)
-    trainer.fit(model, data_module)
 
-if __name__ =='__main__':
-    run_pipe()
+
+
+
+decoder = PerceiverClassificationDecoder(
+    perc_conf,
+    num_channels=perc_conf.d_latents,
+    trainable_position_encoding_kwargs=dict(num_channels=perc_conf.d_latents, index_dims=1),
+    use_query_residual=True,
+)
+preprocessor = PerceiverMultimodalPreprocessor(min_padding_size=min_padding_size,
+                         modalities=nn.ModuleDict({
+                             'angles': AnglePreprocessor(),
+                             'dist' : MolecPreprocessor()
+                             })
+                                  )
+
+model = MyPerceiver(perc_conf, input_preprocessor=preprocessor, decoder=decoder)
+trainer = pl.Trainer(gpus=1)
+trainer.fit(model, data_module)

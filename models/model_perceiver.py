@@ -27,6 +27,11 @@ from transformers.models.perceiver.modeling_perceiver import (
 )
 
 
+# base_path = Path.cwd()
+# with initialize( config_path= str(base_path / "configs")):
+#     cfg = compose(config_name="config.yaml")
+
+
 class GaussianSmearing(nn.Module):
     def __init__(self, start=0.0, stop=5.0, num_gaussians=62):
         super().__init__()
