@@ -44,7 +44,7 @@ from datasets.dataset_perceiver import CustomDataset
 from hydra import initialize, initialize_config_module, initialize_config_dir, compose
 
 base_path = Path.cwd()
-with initialize(config_path=str(base_path / "configs")):
+with initialize(config_path="configs"):
     cfg = compose(config_name="config.yaml")
 
 # DO NOT FORGET TO CUT PRETRANSFORM
