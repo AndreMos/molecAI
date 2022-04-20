@@ -62,14 +62,14 @@ class DataModule(pl.LightningDataModule):
             dataset[:110462],
             shuffle=True,
             batch_size=cfg.perceiver.batch_size,
-            **{"drop_last": True, 'num_workers' : 16}
+            **{"drop_last": True}
         )
 
     def val_dataloader(self):
         return torch_geometric.loader.DataLoader(
             dataset[110462:111462],
             batch_size=cfg.perceiver.batch_size,
-            **{"drop_last": True, 'num_workers' : 16}
+            **{"drop_last": True}
         )
 
 
