@@ -9,3 +9,5 @@ perceiver:
     num_self_attention_heads: 8
   min_padding_size: 2
   batch_size: 32
+
+dir: "/data/scratch2/andrem97/"
