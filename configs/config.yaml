@@ -11,3 +11,16 @@ perceiver:
   batch_size: 32
 
 dir: "/data/scratch2/andrem97/"
+
+gaussian_smear:
+  num_gaussians: 62
+  angle:
+    start: -1
+    stop: 1
+    emb_size: 128
+  dist:
+    start: 0
+    stop: 5
+    emb_size: 256
+
+

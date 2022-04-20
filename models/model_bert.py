@@ -31,9 +31,11 @@ class DistilBertAppl(pl.LightningModule):
             n_heads=2,
             hidden_dim=512,
             n_layers=1,
-            dropout=0.0, attention_dropout=0.1, qa_dropout=0, seq_classif_dropout=0,
-
-            ** {"problem_type": "regression"}
+            dropout=0.0,
+            attention_dropout=0.1,
+            qa_dropout=0,
+            seq_classif_dropout=0,
+            **{"problem_type": "regression"}
         )
         # self.config = DistilBertConfig(
         #     vocab_size=6,
@@ -83,7 +85,7 @@ class DistilBertAppl(pl.LightningModule):
         x = torch.cat(
             [
                 nn.ConstantPad1d((0, 29 - len(tens)), 0)(tens.T).T
-                for tens in torch.tensor_split(x, sample.ptr[1:-1].to('cpu'))
+                for tens in torch.tensor_split(x, sample.ptr[1:-1].to("cpu"))
             ]
         )  # .reshape(self.batch_size, -1, self.hidden_s)
 
