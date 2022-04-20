@@ -136,8 +136,8 @@ class AnglePreprocessor(MolecPreprocessor):
 
 
 class MyPerceiver(PerceiverModel, pl.LightningModule):
-    def __init__(self, config, input_preprocesso, decoder):
-        super(PerceiverModel).__init__(config, input_preprocesso, decoder)
+    def __init__(self, config, input_preprocessor, decoder):
+        super(PerceiverModel, self).__init__(config, input_preprocessor, decoder)
         self.save_hyperparameters()
 
     def forward(
