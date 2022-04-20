@@ -10,7 +10,7 @@ perceiver:
   min_padding_size: 2
   batch_size: 32
 
-dir: "/data/scratch2/andrem97/"
+dir: "/data/scratch2/andrem97/molecAI"
 
 gaussian_smear:
   num_gaussians: 62
