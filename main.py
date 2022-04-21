@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-#SBATCH -o try
+#SBATCH -o perceiverbondswithes
 #SBATCH -p gpu
 #SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
-#SBATCH --time 00:05:00
+#SBATCH --time 60:00:00
 #SBATCH -J testjob
 #SBATCH --mem 8GB
 import sys
@@ -13,6 +13,7 @@ import os
 sys.path.append(os.getcwd())
 
 import torch.nn as nn
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from transformers import (
     PerceiverForSequenceClassification,
     PerceiverConfig,
@@ -50,6 +51,7 @@ mlflow.set_tracking_uri("https://dagshub.com/AndreMos/molecAI.mlflow")
 os.environ["MLFLOW_TRACKING_USERNAME"] = "AndreMos"
 os.environ["MLFLOW_TRACKING_PASSWORD"] = codes.p
 mlflow.pytorch.autolog()
+mlflow.set_experiment("perceiverbondswithes")
 
 base_path = Path.cwd()
 
@@ -112,7 +114,7 @@ preprocessor = PerceiverMultimodalPreprocessor(
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 #model.save_hyperparameters()
 #with mlflow.start_run():
-trainer = pl.Trainer(gpus=1)
+trainer = pl.Trainer(gpus=1, callbacks=[EarlyStopping(monitor="val_loss", patience=10, min_delta=5e-2)])
 trainer.fit(model, data_module)
 #mlflow.end_run()
 
