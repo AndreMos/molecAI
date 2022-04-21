@@ -44,9 +44,11 @@ from datasets.dataset_perceiver import CustomDataset
 
 
 from hydra import initialize, initialize_config_module, initialize_config_dir, compose
-
+import codes
 import mlflow
 mlflow.set_tracking_uri("https://dagshub.com/AndreMos/molecAI.mlflow")
+os.environ["MLFLOW_TRACKING_USERNAME"] = "AndreMos"
+os.environ["MLFLOW_TRACKING_PASSWORD"] = codes.p
 mlflow.pytorch.autolog()
 
 base_path = Path.cwd()
@@ -109,7 +111,9 @@ preprocessor = PerceiverMultimodalPreprocessor(
 
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 #model.save_hyperparameters()
-with mlflow.start_run():
-    trainer = pl.Trainer(gpus=1)
-    trainer.fit(model, data_module)
-mlflow.end_run()
+#with mlflow.start_run():
+trainer = pl.Trainer(gpus=1)
+trainer.fit(model, data_module)
+#mlflow.end_run()
+
+
