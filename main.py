@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-#SBATCH -o perceiverbonds
+#SBATCH -o try
 #SBATCH -p gpu
 #SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
-#SBATCH --time 48:00:00
+#SBATCH --time 00:05:00
 #SBATCH -J testjob
 #SBATCH --mem 8GB
 import sys
@@ -44,6 +44,9 @@ from datasets.dataset_perceiver import CustomDataset
 
 
 from hydra import initialize, initialize_config_module, initialize_config_dir, compose
+from pytorch_lightning.loggers import MLFlowLogger
+
+
 
 base_path = Path.cwd()
 
@@ -105,5 +108,6 @@ preprocessor = PerceiverMultimodalPreprocessor(
 
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 #model.save_hyperparameters()
-trainer = pl.Trainer(gpus=1)
+mlf_logger = MLFlowLogger()
+trainer = pl.Trainer(gpus=1, logger=mlf_logger)
 trainer.fit(model, data_module)
