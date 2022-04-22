@@ -59,11 +59,11 @@ class MolecPreprocessor(AbstractPreprocessor):
             embedding_dim=cfg.gaussian_smear.emb_size,
             padding_idx=0,
         )
-        self.bond_type_emb = nn.Embedding(
-            num_embeddings=10,
-            embedding_dim=cfg.gaussian_smear.emb_size,
-            padding_idx=0,
-        )
+        # self.bond_type_emb = nn.Embedding(
+        #     num_embeddings=10,
+        #     embedding_dim=cfg.gaussian_smear.emb_size,
+        #     padding_idx=0,
+        # )
         # self.to_standart_form = to_standart_form
 
     def to_standart_form(self, batch_size, param, sample):
@@ -89,14 +89,14 @@ class MolecPreprocessor(AbstractPreprocessor):
         col = self.to_standart_form(
             sample=sample, param="col_padded", batch_size=batch_size
         )
-        bond = self.to_standart_form(sample=sample, param="bond", batch_size=batch_size)
-        bond_emb = self.bond_type_emb(bond)
+        #bond = self.to_standart_form(sample=sample, param="bond", batch_size=batch_size)
+        #bond_emb = self.bond_type_emb(bond)
         pos_enc_row = self.emb(row)
         pos_enc_col = self.emb(col)
         pos_enc = (
             pos_enc_row + pos_enc_col
         )  # torch.cat((pos_enc_row, pos_enc_col), dim=-1)
-        pos_enc = torch.cat((bond_emb, pos_enc), dim=-1)
+        #pos_enc = torch.cat((bond_emb, pos_enc), dim=-1)
         input_w_pos = torch.cat((input_wo_pos, pos_enc), dim=-1)
         return input_w_pos, None, input_wo_pos
 

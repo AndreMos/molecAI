@@ -22,6 +22,6 @@ gaussian_smear:
   dist:
     start: 0
     stop: 5
-    pos_enc_size: 256
+    pos_enc_size: 128
 
 

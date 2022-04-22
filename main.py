@@ -3,7 +3,6 @@
 #SBATCH -p gpu
 #SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
-#SBATCH --time 60:00:00
 #SBATCH -J testjob
 #SBATCH --mem 8GB
 import sys
@@ -114,7 +113,7 @@ preprocessor = PerceiverMultimodalPreprocessor(
 model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 #model.save_hyperparameters()
 #with mlflow.start_run():
-trainer = pl.Trainer(gpus=1, callbacks=[EarlyStopping(monitor="val_loss", patience=10, min_delta=5e-2)])
+trainer = pl.Trainer(gpus=1, callbacks=[EarlyStopping(monitor="val_loss", patience=20, min_delta=5e-2)])
 trainer.fit(model, data_module)
 #mlflow.end_run()
 
