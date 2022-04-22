@@ -50,7 +50,7 @@ mlflow.set_tracking_uri("https://dagshub.com/AndreMos/molecAI.mlflow")
 os.environ["MLFLOW_TRACKING_USERNAME"] = "AndreMos"
 os.environ["MLFLOW_TRACKING_PASSWORD"] = codes.p
 mlflow.pytorch.autolog()
-mlflow.set_experiment("perceiverbondswithes")
+mlflow.set_experiment("perceiverbondswithoutbonds")
 
 base_path = Path.cwd()
 
