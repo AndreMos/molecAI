@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-#SBATCH -o perceiverbondswobonds
+#SBATCH -o perceiveronlydist
 #SBATCH -p gpu
 #SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
+#SBATCH --time 60:00:00
 #SBATCH -J testjob
 #SBATCH --mem 8GB
 import sys
@@ -50,7 +51,7 @@ mlflow.set_tracking_uri("https://dagshub.com/AndreMos/molecAI.mlflow")
 os.environ["MLFLOW_TRACKING_USERNAME"] = "AndreMos"
 os.environ["MLFLOW_TRACKING_PASSWORD"] = codes.p
 mlflow.pytorch.autolog()
-mlflow.set_experiment("perceiverbondswithoutbonds")
+mlflow.set_experiment("perceiveronlydist")
 
 base_path = Path.cwd()
 
@@ -106,7 +107,7 @@ decoder = PerceiverClassificationDecoder(
 preprocessor = PerceiverMultimodalPreprocessor(
     min_padding_size=min_padding_size,
     modalities=nn.ModuleDict(
-        {"angles": AnglePreprocessor(), "dist": MolecPreprocessor()}
+        {"dist": MolecPreprocessor()}
     ),
 )
 

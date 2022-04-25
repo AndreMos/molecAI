@@ -156,7 +156,7 @@ class MyPerceiver(PerceiverModel, pl.LightningModule):
             inputs,
             attention_mask=torch.cat(
                 [
-                    sample_inp.attent_mask.reshape(len(sample_inp.idx), -1),
+                    #sample_inp.attent_mask.reshape(len(sample_inp.idx), -1),
                     sample_inp.attent_dist.reshape(len(sample_inp.idx), -1),
                 ],
                 dim=-1,
