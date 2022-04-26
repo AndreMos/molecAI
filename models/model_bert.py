@@ -28,7 +28,7 @@ class DistilBertAppl(pl.LightningModule):
             max_position_embeddings=29,
             dim=self.hidden_s,
             num_labels=1,
-            n_heads=2,
+            n_heads=4,
             hidden_dim=512,
             n_layers=1,
             dropout=0.0,
@@ -105,11 +105,13 @@ class DistilBertAppl(pl.LightningModule):
         loss = self.forward(val_batch)
         self.log("val_loss", loss, batch_size=32)
 
+
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
-        # sched = torch.optim.lr_scheduler.StepLR(optimizer, 100000,
-        #                                         0.96)  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
-        return [optimizer]  # , [sched]
+        optimizer = torch.optim.AdamW(self.parameters(), lr=5e-4)
+        sched = torch.optim.lr_scheduler.StepLR(
+            optimizer, 100000, 0.96
+        )  # torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.96)
+        return [optimizer], [sched]
 
 
 class CustomSchnet(SchNet):

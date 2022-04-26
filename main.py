@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#SBATCH -o perceiveronlydist
+#SBATCH -o distilbertONoneblock
 #SBATCH -p gpu
 #SBATCH -D /data/scratch2/andrem97/molecAI/
 #SBATCH --gres=gpu:1
@@ -39,6 +39,7 @@ from dagshub.pytorch_lightning import DAGsHubLogger
 
 # from model_mult_mod import  MultiMod
 from models.model_perceiver import MyPerceiver, MolecPreprocessor, AnglePreprocessor
+from models.model_bert import DistilBertAppl
 
 
 from datasets.dataset_perceiver import CustomDataset
@@ -51,7 +52,7 @@ mlflow.set_tracking_uri("https://dagshub.com/AndreMos/molecAI.mlflow")
 os.environ["MLFLOW_TRACKING_USERNAME"] = "AndreMos"
 os.environ["MLFLOW_TRACKING_PASSWORD"] = codes.p
 mlflow.pytorch.autolog()
-mlflow.set_experiment("perceiveronlydist")
+mlflow.set_experiment("distilbertONoneblock")
 
 base_path = Path.cwd()
 
@@ -83,37 +84,38 @@ class DataModule(pl.LightningDataModule):
 
 # train
 data_module = DataModule()
-allias = cfg.perceiver.initial
-config = PerceiverConfig(
-    num_latents=allias.num_latents,
-    d_latents=allias.d_latents,
-    num_labels=allias.num_labels,
-    num_cross_attention_heads=allias.num_cross_attention_heads,
-    num_self_attends_per_block=allias.num_self_attends_per_block,
-    attention_probs_dropout_prob=allias.attention_probs_dropout_prob,
-    num_self_attention_heads=allias.num_self_attention_heads,
-)
-min_padding_size = cfg.perceiver.min_padding_size
-
-
-decoder = PerceiverClassificationDecoder(
-    config,
-    num_channels=config.d_latents,
-    trainable_position_encoding_kwargs=dict(
-        num_channels=config.d_latents, index_dims=1
-    ),
-    use_query_residual=True,
-)
-preprocessor = PerceiverMultimodalPreprocessor(
-    min_padding_size=min_padding_size,
-    modalities=nn.ModuleDict(
-        {"dist": MolecPreprocessor()}
-    ),
-)
-
-model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
+# allias = cfg.perceiver.initial
+# config = PerceiverConfig(
+#     num_latents=allias.num_latents,
+#     d_latents=allias.d_latents,
+#     num_labels=allias.num_labels,
+#     num_cross_attention_heads=allias.num_cross_attention_heads,
+#     num_self_attends_per_block=allias.num_self_attends_per_block,
+#     attention_probs_dropout_prob=allias.attention_probs_dropout_prob,
+#     num_self_attention_heads=allias.num_self_attention_heads,
+# )
+# min_padding_size = cfg.perceiver.min_padding_size
+#
+#
+# decoder = PerceiverClassificationDecoder(
+#     config,
+#     num_channels=config.d_latents,
+#     trainable_position_encoding_kwargs=dict(
+#         num_channels=config.d_latents, index_dims=1
+#     ),
+#     use_query_residual=True,
+# )
+# preprocessor = PerceiverMultimodalPreprocessor(
+#     min_padding_size=min_padding_size,
+#     modalities=nn.ModuleDict(
+#         {"dist": MolecPreprocessor()}
+#     ),
+# )
+#
+# model = MyPerceiver(config, input_preprocessor=preprocessor, decoder=decoder)
 #model.save_hyperparameters()
 #with mlflow.start_run():
+model = DistilBertAppl()
 trainer = pl.Trainer(gpus=1, callbacks=[EarlyStopping(monitor="val_loss", patience=20, min_delta=5e-2)])
 trainer.fit(model, data_module)
 #mlflow.end_run()
